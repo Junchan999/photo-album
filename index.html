@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>写真アルバムアプリ (外部JSON・フォント設定・ページ番号・スクロール版)</title>
+    <title>写真アルバムアプリ Ver1.10</title>
     <style>
         /* 全体的なスタイル */
         body {
@@ -57,7 +57,7 @@
         }
 
 
-        .title-input-area, .font-settings-area {
+        .title-input-area, .font-settings-area, .page-navigation-area /* 変更: ページ移動エリアのスタイルを追加 */ {
             display: flex;
             flex-direction: column;
             gap: 10px; /* 各要素間のスペース */
@@ -74,22 +74,51 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
-        .title-input-area label, .font-settings-area label {
+        .title-input-area label, .font-settings-area label, .page-navigation-area label /* 変更: ページ移動エリアのスタイルを追加 */ {
             font-size: 0.9em;
             color: #555;
             margin-bottom: -5px; /* 上の要素との間隔を詰める */
             margin-top: 5px; /* 次の要素との間隔 */
         }
-        .title-input-area label:first-child, .font-settings-area label:first-child {
+        .title-input-area label:first-child, .font-settings-area label:first-child, .page-navigation-area label:first-child /* 変更: ページ移動エリアのスタイルを追加 */ {
             margin-top: 0;
         }
 
-        .font-settings-area h3 {
+        .font-settings-area h3, .page-navigation-area h3 /* 変更: ページ移動エリアのスタイルを追加 */ {
             font-size: 1.1em;
             color: #0056b3;
             margin: 0 0 5px 0;
             text-align: center;
         }
+
+        /* --- ここから追加したCSS --- */
+        .page-go-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .page-go-controls input[type="number"] {
+            flex: 1; /* 幅を柔軟に */
+            padding: 8px 10px;
+            font-size: 1em;
+            border: 1px solid #0056b3;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .page-go-controls button {
+            padding: 8px 15px;
+            font-size: 1em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #ffc107; /* 移動ボタンの色 */
+            color: #212529;
+            transition: background-color 0.3s ease;
+        }
+        .page-go-controls button:hover {
+            background-color: #e0a800;
+        }
+        /* --- ここまで追加したCSS --- */
 
 
         .button-area {
@@ -545,6 +574,19 @@
 
             <hr style="border-top: 1px solid #eee;">
 
+            <!-- ここから追加したHTML: ページ移動機能 -->
+            <div class="page-navigation-area">
+                <h3>ページ移動</h3>
+                <label for="pageGoInput">ページ番号へ移動:</label>
+                <div class="page-go-controls">
+                    <input type="number" id="pageGoInput" min="1" placeholder="番号">
+                    <button id="goToPageButton">移動</button>
+                </div>
+            </div>
+            <!-- ここまで追加したHTML -->
+
+            <hr style="border-top: 1px solid #eee;">
+
             <div class="button-area">
                 <button id="addPageButton">新しいページを追加</button>
                 <button id="printButton">PDFとして印刷</button>
@@ -581,8 +623,9 @@
         let mainTitleInput, subtitleInput;
         let mainTitleFontFamilyInput, mainTitleFontSizeInput;
         let subtitleFontFamilyInput, subtitleFontSizeInput;
-        let commentFontFamilyInput, commentFontSizeInput; // 追加: コメントフォント設定
+        let commentFontFamilyInput, commentFontSizeInput;
         let pagesContainer;
+        let pageGoInput, goToPageButton; // 追加: ページ移動機能の要素
 
         // モーダル関連の要素
         let imageModal, modalImage, modalCaption, modalClose;
@@ -624,19 +667,16 @@
                 </div>
             `;
             
-            // 画像のクリックイベントリスナーをここで設定
             const imgElement = photoEntryDiv.querySelector(`#imagePreview${entryId}`);
             const textareaElement = photoEntryDiv.querySelector(`#comment${entryId}`);
 
             imgElement.addEventListener('click', () => {
-                // 画像が設定されており、表示されている場合のみモーダルを開く
                 if (imgElement.src && imgElement.src !== window.location.href && imgElement.style.display !== 'none') {
                     imageModal.style.display = 'block';
                     modalImage.src = imgElement.src;
                     modalCaption.textContent = textareaElement.value;
-                    // メモのフォント設定をモーダルのキャプションにも適用
                     modalCaption.style.fontFamily = commentFontFamilyInput.value;
-                    modalCaption.style.fontSize = `${parseFloat(commentFontSizeInput.value) * 1.2}px`; // 少し大きめに表示
+                    modalCaption.style.fontSize = `${parseFloat(commentFontSizeInput.value) * 1.2}px`;
                 }
             });
 
@@ -655,11 +695,11 @@
             const subFontSize = `${subtitleFontSizeInput.value}px`;
 
             pages.forEach((page, index) => {
-                const pageNumber = index + 1; // 1から始まるページ番号
-                page.dataset.pageNumber = pageNumber; // データ属性にページ番号を保存
+                const pageNumber = index + 1;
+                page.dataset.pageNumber = pageNumber;
 
                 const pageTitleElement = page.querySelector('.page-title');
-                pageTitleElement.innerHTML = ''; // 一度クリア
+                pageTitleElement.innerHTML = '';
 
                 const mainTitleSpan = document.createElement('span');
                 mainTitleSpan.textContent = currentMainTitle;
@@ -669,26 +709,32 @@
 
                 if (currentSubtitle) {
                     const subtitleSpan = document.createElement('span');
-                    subtitleSpan.className = 'page-subtitle-display'; // サブタイトル表示用のクラス
+                    subtitleSpan.className = 'page-subtitle-display';
                     subtitleSpan.textContent = currentSubtitle;
                     subtitleSpan.style.fontFamily = subFontFamily;
                     subtitleSpan.style.fontSize = subFontSize;
                     pageTitleElement.appendChild(subtitleSpan);
                 }
 
-                // ページ番号表示の更新
                 const pageNumberDisplay = page.querySelector('.page-number-display');
                 if (pageNumberDisplay) {
                     pageNumberDisplay.textContent = `Page ${pageNumber}`;
-                    // ページ番号のフォントスタイルはメインタイトルに準ずるか、別途
                     pageNumberDisplay.style.fontFamily = mainFontFamily;
-                    pageNumberDisplay.style.fontSize = `${parseFloat(mainTitleFontSizeInput.value) * 0.7}px`; // メインタイトルの70%など
+                    pageNumberDisplay.style.fontSize = `${parseFloat(mainTitleFontSizeInput.value) * 0.7}px`;
                 }
             });
-            page_number_counter = pages.length; // ページカウンターを現在のページ数に同期
+            page_number_counter = pages.length;
+            
+            // --- ここから追加したJavaScript ---
+            // ページ移動入力のmax値とプレースホルダーを更新
+            if (pageGoInput) {
+                pageGoInput.max = page_number_counter;
+                pageGoInput.placeholder = `1-${page_number_counter}`;
+            }
+            // --- ここまで追加したJavaScript ---
         }
 
-        // コメント（メモ）のスタイルを更新する関数 (追加)
+        // コメント（メモ）のスタイルを更新する関数
         function updateCommentStyles() {
             const commentFontFamily = commentFontFamilyInput.value;
             const commentFontSize = `${commentFontSizeInput.value}px`;
@@ -702,17 +748,17 @@
 
         // 新しいページ (div.print-page) を作成し、写真項目を追加する関数
         function createNewPageElement(photoEntriesData = null) {
-            page_number_counter++; // 新しいページが追加されるのでカウンターをインクリメント
+            page_number_counter++;
 
             const pageDiv = document.createElement('div');
             pageDiv.className = 'print-page';
-            pageDiv.dataset.pageNumber = page_number_counter; // ページ番号をデータ属性に設定
+            pageDiv.dataset.pageNumber = page_number_counter;
 
             const pageTitle = document.createElement('h1');
             pageTitle.className = 'page-title';
             pageDiv.appendChild(pageTitle);
 
-            const pageNumberDisplay = document.createElement('div'); // ページ番号表示要素を追加
+            const pageNumberDisplay = document.createElement('div');
             pageNumberDisplay.className = 'page-number-display';
             pageDiv.appendChild(pageNumberDisplay);
 
@@ -720,13 +766,11 @@
             pageContent.className = 'page-content';
 
             if (photoEntriesData && photoEntriesData.length === 4) {
-                // ロード時
                 photoEntriesData.forEach(entryData => {
                     const photoEntry = createPhotoEntryElement(entryData.imageData, entryData.comment);
                     pageContent.appendChild(photoEntry);
                 });
             } else {
-                // 新規作成時
                 for (let i = 0; i < 4; i++) {
                     const photoEntry = createPhotoEntryElement();
                     pageContent.appendChild(photoEntry);
@@ -736,7 +780,6 @@
 
             pagesContainer.appendChild(pageDiv);
 
-            // 新しく追加されたページ内の全ファイル入力にイベントリスナーを設定
             const newImageInputs = pageDiv.querySelectorAll('input[type="file"]');
             newImageInputs.forEach(input => {
                 const associatedImgId = `imagePreview${input.id.replace('imageInput', '')}`;
@@ -746,8 +789,8 @@
                 }
             });
 
-            updatePageTitles(); // ページが追加されたら、全てのページのタイトルを更新
-            updateCommentStyles(); // ページが追加されたら、全てのコメントスタイルを更新 (追加)
+            updatePageTitles();
+            updateCommentStyles();
             return pageDiv;
         }
 
@@ -760,8 +803,8 @@
                 mainTitleFontSize: mainTitleFontSizeInput.value,
                 subtitleFontFamily: subtitleFontFamilyInput.value,
                 subtitleFontSize: subtitleFontSizeInput.value,
-                commentFontFamily: commentFontFamilyInput.value, // 追加: コメントフォント設定
-                commentFontSize: commentFontSizeInput.value,     // 追加: コメントフォント設定
+                commentFontFamily: commentFontFamilyInput.value,
+                commentFontSize: commentFontSizeInput.value,
                 pages: []
             };
 
@@ -773,7 +816,7 @@
                     const img = entryDiv.querySelector('img');
                     const textarea = entryDiv.querySelector('textarea');
                     pageData.photoEntries.push({
-                        imageData: img.src || '', // Base64データまたは空文字列
+                        imageData: img.src || '',
                         comment: textarea.value || ''
                     });
                 });
@@ -794,20 +837,20 @@
             mainTitleFontSizeInput.value = albumData.mainTitleFontSize || mainTitleFontSizeInput.defaultValue;
             subtitleFontFamilyInput.value = albumData.subtitleFontFamily || subtitleFontFamilyInput.options[0].value;
             subtitleFontSizeInput.value = albumData.subtitleFontSize || subtitleFontSizeInput.defaultValue;
-            commentFontFamilyInput.value = albumData.commentFontFamily || commentFontFamilyInput.options[0].value; // 追加
-            commentFontSizeInput.value = albumData.commentFontSize || commentFontSizeInput.defaultValue;     // 追加
+            commentFontFamilyInput.value = albumData.commentFontFamily || commentFontFamilyInput.options[0].value;
+            commentFontSizeInput.value = albumData.commentFontSize || commentFontSizeInput.defaultValue;
 
             albumData.pages.forEach(pageData => {
                 createNewPageElement(pageData.photoEntries);
             });
-            updatePageTitles(); // Ensure all titles are updated with new settings
-            updateCommentStyles(); // Ensure all comments are updated with new settings (追加)
+            updatePageTitles();
+            updateCommentStyles();
         }
 
         // アルバムをJSONファイルとしてダウンロードする関数
         function downloadAlbumAsJson() {
             const albumData = getAlbumData();
-            const jsonString = JSON.stringify(albumData, null, 2); // 読みやすいようにインデント付き
+            const jsonString = JSON.stringify(albumData, null, 2);
 
             const blob = new Blob([jsonString], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -820,7 +863,7 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            URL.revokeObjectURL(url); // オブジェクトURLを解放
+            URL.revokeObjectURL(url);
             alert('アルバムデータがJSONファイルとしてダウンロードされました。');
         }
 
@@ -844,7 +887,7 @@
                 }
             };
             reader.readAsText(file);
-            event.target.value = ''; // ファイル選択をクリアし、同じファイルを再度選択できるようにする
+            event.target.value = '';
         }
 
         // アルバムを初期化する関数
@@ -853,38 +896,44 @@
                 return;
             }
 
-            pagesContainer.innerHTML = ''; // 全ページを削除
-            entry_id_counter = 0; // IDカウンターをリセット
-            page_number_counter = 0; // ページカウンターをリセット
+            pagesContainer.innerHTML = '';
+            entry_id_counter = 0;
+            page_number_counter = 0;
             
-            // タイトルとフォント設定を初期化
             mainTitleInput.value = "私の写真アルバム";
             subtitleInput.value = "";
             mainTitleFontFamilyInput.value = mainTitleFontFamilyInput.options[0].value;
             mainTitleFontSizeInput.value = "32";
             subtitleFontFamilyInput.value = subtitleFontFamilyInput.options[0].value;
             subtitleFontSizeInput.value = "20";
-            commentFontFamilyInput.value = commentFontFamilyInput.options[0].value; // 追加
-            commentFontSizeInput.value = "14";                                    // 追加
+            commentFontFamilyInput.value = commentFontFamilyInput.options[0].value;
+            commentFontSizeInput.value = "14";
             
-            createNewPageElement(); // 最初の1ページを生成
-            alert('アルバムが初期化されました。');
+            // --- ここから追加したJavaScript ---
+            // ページ移動入力もリセット
+            if (pageGoInput) {
+                pageGoInput.value = '';
+            }
+            // --- ここまで追加したJavaScript ---
+            
+            createNewPageElement();
+            if(showConfirm) alert('アルバムが初期化されました。');
         }
 
 
         document.addEventListener('DOMContentLoaded', () => {
-            // グローバル参照の設定
             mainTitleInput = document.getElementById('mainTitleInput');
             subtitleInput = document.getElementById('subtitleInput');
             mainTitleFontFamilyInput = document.getElementById('mainTitleFontFamily');
             mainTitleFontSizeInput = document.getElementById('mainTitleFontSize');
             subtitleFontFamilyInput = document.getElementById('subtitleFontFamily');
             subtitleFontSizeInput = document.getElementById('subtitleFontSize');
-            commentFontFamilyInput = document.getElementById('commentFontFamily'); // 追加
-            commentFontSizeInput = document.getElementById('commentFontSize');     // 追加
+            commentFontFamilyInput = document.getElementById('commentFontFamily');
+            commentFontSizeInput = document.getElementById('commentFontSize');
             pagesContainer = document.getElementById('pages-container');
+            pageGoInput = document.getElementById('pageGoInput');         // 追加
+            goToPageButton = document.getElementById('goToPageButton'); // 追加
 
-            // モーダル関連の要素参照を設定
             imageModal = document.getElementById('imageModal');
             modalImage = document.getElementById('modalImage');
             modalCaption = document.getElementById('caption');
@@ -897,58 +946,62 @@
             const initializeButton = document.getElementById('initializeButton');
             const jsonFileInput = document.getElementById('jsonFileInput');
 
-            // ページロード時に1つの空のページを生成し、初期設定を適用
-            initializeAlbum(false); // 初期化の確認なし
+            initializeAlbum(false);
 
-            // タイトルとサブタイトル入力欄の変更を監視し、全てのページのヘッダタイトルを更新
             mainTitleInput.addEventListener('input', updatePageTitles);
             subtitleInput.addEventListener('input', updatePageTitles);
             
-            // フォント設定の変更を監視し、全てのページのヘッダタイトルを更新
             mainTitleFontFamilyInput.addEventListener('change', updatePageTitles);
             mainTitleFontSizeInput.addEventListener('input', updatePageTitles);
             subtitleFontFamilyInput.addEventListener('change', updatePageTitles);
             subtitleFontSizeInput.addEventListener('input', updatePageTitles);
 
-            // メモフォント設定の変更を監視し、全てのメモのスタイルを更新 (追加)
             commentFontFamilyInput.addEventListener('change', updateCommentStyles);
             commentFontSizeInput.addEventListener('input', updateCommentStyles);
 
 
-            // 「新しいページを追加」ボタンのクリックイベント
             addPageButton.addEventListener('click', () => {
                 const newPage = createNewPageElement();
-                // 新しいページが追加された位置までスクロール
                 newPage.scrollIntoView({ behavior: 'smooth', block: 'end' });
             });
 
-            // PDF印刷機能
             printButton.addEventListener('click', () => {
                 window.print();
             });
 
-            // JSONファイルのダウンロード機能
             downloadJsonButton.addEventListener('click', downloadAlbumAsJson);
             
-            // JSONファイルアップロードのハンドラ
             jsonFileInput.addEventListener('change', handleJsonFileUpload);
 
-            // 初期化ボタンのイベントリスナー
             initializeButton.addEventListener('click', initializeAlbum);
 
-            // --- モーダルウィンドウのイベントリスナー ---
-            // 閉じるボタンのクリックでモーダルを非表示にする
+            // --- ここから追加したJavaScript: ページ移動ボタンのイベントリスナー ---
+            goToPageButton.addEventListener('click', () => {
+                const pageNumber = parseInt(pageGoInput.value, 10);
+                if (!pageNumber || pageNumber < 1 || pageNumber > page_number_counter) {
+                    alert(`1から${page_number_counter}までの有効なページ番号を入力してください。`);
+                    return;
+                }
+
+                const targetPage = document.querySelector(`.print-page[data-page-number="${pageNumber}"]`);
+                if (targetPage) {
+                    targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    alert('指定されたページが見つかりませんでした。');
+                }
+            });
+            // --- ここまで追加したJavaScript ---
+
+
             modalClose.addEventListener('click', () => {
                 imageModal.style.display = 'none';
             });
 
-            // モーダル背景のクリックでモーダルを非表示にする
             imageModal.addEventListener('click', (event) => {
                 if (event.target === imageModal) {
                     imageModal.style.display = 'none';
                 }
             });
-            // --- モーダルウィンドウのイベントリスナー ここまで ---
         });
     </script>
 </body>
