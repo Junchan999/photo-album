@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>写真アルバムアプリ Ver1.10</title>
+    <title>写真アルバムアプリ Ver1.20 (タブUI版)</title>
     <style>
         /* 全体的なスタイル */
         body {
@@ -33,14 +33,11 @@
             border-radius: 8px;
             display: flex;
             flex-direction: column;
-            gap: 25px;
-            
-            /* 追加・修正点: コントロールパネルに高さ制限とスクロール機能を追加 */
-            max-height: calc(100vh - 40px); /* 画面の高さ - (bodyの上下padding + margin) */
-            overflow-y: auto; /* 縦スクロールを有効にする */
-            box-sizing: border-box; /* paddingを含めて高さ計算 */
+            gap: 15px; /* タブとコンテンツ間のギャップ */
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            box-sizing: border-box;
         }
-        /* コントロールパネルのスクロールバーのスタイル（任意） */
         .control-panel::-webkit-scrollbar {
             width: 8px;
         }
@@ -56,11 +53,49 @@
             background: #555;
         }
 
+        /* --- ここからタブUIのCSSを追加 --- */
+        .tab-buttons {
+            display: flex;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            font-size: 1em;
+            color: #495057;
+            transition: background-color 0.3s, color 0.3s;
+            text-align: center;
+        }
+        .tab-button:hover {
+            background-color: #e9ecef;
+        }
+        .tab-button.active {
+            background-color: white;
+            color: #007bff;
+            border-color: #dee2e6 #dee2e6 white;
+            font-weight: bold;
+        }
 
-        .title-input-area, .font-settings-area, .page-navigation-area /* 変更: ページ移動エリアのスタイルを追加 */ {
+        .tab-content {
+            display: none; /* デフォルトで非表示 */
+            flex-direction: column;
+            gap: 20px;
+        }
+        .tab-content.active {
+            display: flex; /* アクティブなタブのみ表示 */
+        }
+        /* --- ここまでタブUIのCSS --- */
+
+
+        .title-input-area, .font-settings-area, .page-navigation-area {
             display: flex;
             flex-direction: column;
-            gap: 10px; /* 各要素間のスペース */
+            gap: 10px;
             padding: 10px;
             background-color: #e9f5ff;
             border-radius: 5px;
@@ -74,31 +109,30 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
-        .title-input-area label, .font-settings-area label, .page-navigation-area label /* 変更: ページ移動エリアのスタイルを追加 */ {
+        .title-input-area label, .font-settings-area label, .page-navigation-area label {
             font-size: 0.9em;
             color: #555;
-            margin-bottom: -5px; /* 上の要素との間隔を詰める */
-            margin-top: 5px; /* 次の要素との間隔 */
+            margin-bottom: -5px;
+            margin-top: 5px;
         }
-        .title-input-area label:first-child, .font-settings-area label:first-child, .page-navigation-area label:first-child /* 変更: ページ移動エリアのスタイルを追加 */ {
+        .title-input-area label:first-child, .font-settings-area label:first-child, .page-navigation-area label:first-child {
             margin-top: 0;
         }
 
-        .font-settings-area h3, .page-navigation-area h3 /* 変更: ページ移動エリアのスタイルを追加 */ {
+        .font-settings-area h3, .page-navigation-area h3 {
             font-size: 1.1em;
             color: #0056b3;
             margin: 0 0 5px 0;
             text-align: center;
         }
-
-        /* --- ここから追加したCSS --- */
+        
         .page-go-controls {
             display: flex;
             gap: 10px;
             align-items: center;
         }
         .page-go-controls input[type="number"] {
-            flex: 1; /* 幅を柔軟に */
+            flex: 1;
             padding: 8px 10px;
             font-size: 1em;
             border: 1px solid #0056b3;
@@ -111,22 +145,19 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            background-color: #ffc107; /* 移動ボタンの色 */
+            background-color: #ffc107;
             color: #212529;
             transition: background-color 0.3s ease;
         }
         .page-go-controls button:hover {
             background-color: #e0a800;
         }
-        /* --- ここまで追加したCSS --- */
-
-
+        
         .button-area {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
-
         .button-area button {
             padding: 12px 20px;
             font-size: 1em;
@@ -136,44 +167,15 @@
             transition: background-color 0.3s ease;
             width: 100%;
         }
+        #printButton { background-color: #28a745; color: white; }
+        #printButton:hover { background-color: #218838; }
+        #addPageButton { background-color: #007bff; color: white; }
+        #addPageButton:hover { background-color: #0056b3; }
+        #initializeButton { background-color: #dc3545; color: white; }
+        #initializeButton:hover { background-color: #c82333; }
+        #downloadJsonButton { background-color: #6c757d; color: white; }
+        #downloadJsonButton:hover { background-color: #5a6268; }
 
-        #printButton {
-            background-color: #28a745;
-            color: white;
-        }
-
-        #printButton:hover {
-            background-color: #218838;
-        }
-
-        #addPageButton {
-            background-color: #007bff;
-            color: white;
-        }
-
-        #addPageButton:hover {
-            background-color: #0056b3;
-        }
-        
-        #initializeButton {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        #initializeButton:hover {
-            background-color: #c82333;
-        }
-
-        #downloadJsonButton {
-            background-color: #6c757d;
-            color: white;
-        }
-
-        #downloadJsonButton:hover {
-            background-color: #5a6268;
-        }
-
-        /* JSONファイル読み込みボタンのスタイル */
         .file-label {
             display: inline-block;
             padding: 12px 20px;
@@ -185,13 +187,10 @@
             width: 100%;
             box-sizing: border-box;
             text-align: center;
-            background-color: #17a2b8; /* Load button color */
+            background-color: #17a2b8;
             color: white;
         }
-
-        .file-label:hover {
-            background-color: #138496;
-        }
+        .file-label:hover { background-color: #138496; }
 
         /* 右側のアルバムコンテンツペイン */
         .album-content-pane {
@@ -199,32 +198,19 @@
             display: flex;
             flex-direction: column;
             gap: 30px;
-            max-height: calc(100vh - 40px); /* PC画面の高さに合わせる */
-            overflow-y: auto; /* 縦スクロールを有効にする */
-            padding-right: 15px; /* スクロールバーとコンテンツの間に余白 */
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            padding-right: 15px;
             box-sizing: border-box;
         }
-        /* スクロールバーのスタイル（任意） */
-        .album-content-pane::-webkit-scrollbar {
-            width: 8px;
-        }
-        .album-content-pane::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        .album-content-pane::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-        .album-content-pane::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
+        .album-content-pane::-webkit-scrollbar { width: 8px; }
+        .album-content-pane::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .album-content-pane::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        .album-content-pane::-webkit-scrollbar-thumb:hover { background: #555; }
 
-
-        /* 各印刷ページ（A4サイズをシミュレート） */
+        /* 各印刷ページ */
         .print-page {
-            width: 210mm; /* A4 width */
-            /* min-height: 297mm; */ /* スクロール対応のため高さを自動調整 */
+            width: 210mm;
             margin: 0 auto;
             padding: 20mm;
             background-color: white;
@@ -233,7 +219,7 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            position: relative; /* ページ番号の絶対配置のため */
+            position: relative;
         }
 
         .page-title {
@@ -243,26 +229,22 @@
             word-break: break-all;
             line-height: 1.3;
         }
-
-        /* .page-title内のspan要素の基本スタイル */
         .page-title span {
-            display: inline; /* デフォルトでインライン */
-            white-space: pre-wrap; /* タイトルが長すぎる場合に折り返し */
+            display: inline;
+            white-space: pre-wrap;
         }
-        
-        .page-title .page-subtitle-display { /* サブタイトル表示用のクラス */
-            display: block; /* 新しい行に表示 */
+        .page-title .page-subtitle-display {
+            display: block;
             color: #555;
-            margin-top: 5px; /* メインタイトルとの間隔 */
+            margin-top: 5px;
         }
-
-        .page-number-display { /* ページ番号のスタイル */
+        .page-number-display {
             position: absolute;
-            top: 15mm; /* 上からの位置 */
-            right: 15mm; /* 右からの位置 */
+            top: 15mm;
+            right: 15mm;
             font-size: 0.9em;
             color: #666;
-            z-index: 10; /* 他の要素より手前に表示 */
+            z-index: 10;
         }
 
         .page-content {
@@ -271,7 +253,6 @@
             gap: 20px;
         }
 
-        /* 写真項目全体のスタイル */
         .photo-entry {
             display: flex;
             align-items: flex-start;
@@ -284,10 +265,9 @@
             page-break-inside: avoid;
         }
 
-        /* 写真プレビューエリア - 幅70%, 固定高さ */
         .photo-preview {
             flex: 7;
-            height: 210px; /* A4ページに合うように高さを調整 */
+            height: 210px;
             border: 1px dashed #ccc;
             display: flex;
             justify-content: center;
@@ -297,15 +277,13 @@
             box-sizing: border-box;
             padding: 5px;
         }
-
         .photo-preview img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-            cursor: pointer; /* クリック可能であることを示す */
+            cursor: pointer;
         }
 
-        /* ファイル選択とコメントエリア - 幅30% */
         .photo-controls {
             flex: 3;
             display: flex;
@@ -313,7 +291,6 @@
             gap: 10px;
             box-sizing: border-box;
         }
-
         .photo-controls input[type="file"] {
             border: 1px solid #007bff;
             padding: 8px;
@@ -323,188 +300,56 @@
             width: 100%;
             box-sizing: border-box;
         }
-
         .photo-controls textarea {
             width: 100%;
-            height: 170px; /* photo-previewの高さに合わせて調整 */
+            height: 170px;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
             resize: vertical;
             font-size: 0.9em;
             box-sizing: border-box;
-            /* JavaScriptでフォントスタイルを設定するため、ここでの設定は初期値またはバックアップ */
         }
 
-        /* --- モーダルウィンドウのスタイル --- */
+        /* モーダルウィンドウ */
         .modal {
-            display: none; /* 初期状態では非表示 */
-            position: fixed; /* 画面に固定 */
-            z-index: 1000; /* 最前面に表示 */
-            padding-top: 60px; /* ボックスの位置 */
-            left: 0;
-            top: 0;
-            width: 100%; /* 全幅 */
-            height: 100%; /* 全高 */
-            overflow: auto; /* 必要に応じてスクロール可能 */
-            background-color: rgba(0,0,0,0.9); /* 半透明の黒い背景 */
+            display: none; position: fixed; z-index: 1000; padding-top: 60px;
+            left: 0; top: 0; width: 100%; height: 100%; overflow: auto;
+            background-color: rgba(0,0,0,0.9);
         }
-
-        /* モーダル内の画像 */
         .modal-content {
-            margin: auto;
-            display: block;
-            width: 90%; /* 以前の80%から90%に拡大 */
-            max-width: 90vw; /* 最大幅をビューポートの90%に設定（以前は700px固定） */
-            max-height: 90vh; /* 最大高さをビューポートの90%に設定（以前は80vh） */
-            object-fit: contain; /* 画像がトリミングされずに収まるように */
-            border: 1px solid #fff; /* 画像の周りに白い枠線 */
+            margin: auto; display: block; width: 90%; max-width: 90vw;
+            max-height: 90vh; object-fit: contain; border: 1px solid #fff;
         }
-
-        /* モーダルキャプション（写真のコメント） */
         .modal-caption {
-            margin: auto;
-            display: block;
-            width: 90%; /* 画像の幅に合わせてキャプションも90%に */
-            max-width: 90vw; /* 画像の最大幅に合わせる */
-            text-align: center;
-            color: #eee; /* キャプションの色を明るく */
-            padding: 15px 0 20px 0; /* 上下左右のパディング */
-            height: auto; /* コンテンツに合わせて高さを自動調整 */
-            max-height: 150px; /* 最大高さを設定 */
-            overflow-y: auto; /* 長いコメントのためにスクロールを有効にする */
-            /* フォントスタイルはJSで動的に適用 */
+            margin: auto; display: block; width: 90%; max-width: 90vw;
+            text-align: center; color: #eee; padding: 15px 0 20px 0;
+            height: auto; max-height: 150px; overflow-y: auto;
         }
-
-        /* 閉じるボタン */
         .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 35px;
-            color: #f1f1f1;
-            font-size: 40px;
-            font-weight: bold;
-            transition: 0.3s;
-            cursor: pointer;
+            position: absolute; top: 15px; right: 35px; color: #f1f1f1;
+            font-size: 40px; font-weight: bold; transition: 0.3s; cursor: pointer;
         }
+        .modal-close:hover, .modal-close:focus { color: #bbb; text-decoration: none; cursor: pointer; }
+        .modal-content, #caption { animation-name: zoom; animation-duration: 0.6s; }
+        @keyframes zoom { from {transform:scale(0)} to {transform:scale(1)} }
 
-        .modal-close:hover,
-        .modal-close:focus {
-            color: #bbb;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        /* モーダルのズームインアニメーション */
-        .modal-content, #caption {
-            -webkit-animation-name: zoom;
-            -webkit-animation-duration: 0.6s;
-            animation-name: zoom;
-            animation-duration: 0.6s;
-        }
-
-        @-webkit-keyframes zoom {
-            from {-webkit-transform:scale(0)}
-            to {-webkit-transform:scale(1)}
-        }
-
-        @keyframes zoom {
-            from {transform:scale(0)}
-            to {transform:scale(1)}
-        }
-
-        /* モーダルのレスポンシブ調整 */
-        @media only screen and (max-width: 768px){ /* レスポンシブのブレークポイントを少し広げました */
-            .modal-content, .modal-caption {
-                width: 95%; /* 小さい画面ではさらに広げる */
-                max-width: 95vw;
-                max-height: 95vh;
-            }
-        }
-        /* --- モーダルウィンドウのスタイル ここまで --- */
-
-
-        /* 印刷時のスタイル調整 */
+        /* 印刷時のスタイル */
         @media print {
-            body {
-                margin: 0;
-                background-color: white;
-                display: block;
-            }
-            .main-layout-container {
-                padding: 0;
-                gap: 0;
-                display: block;
-            }
-            .control-panel {
-                display: none;
-            }
-            .album-content-pane {
-                flex: none;
-                width: 100%;
-                gap: 0;
-                max-height: none; /* 印刷時は最大高さを解除 */
-                overflow-y: visible; /* 印刷時はスクロールを無効化 */
-                padding-right: 0;
-            }
-            .print-page {
-                margin: 0;
-                box-shadow: none;
-                border: none;
-                min-height: auto;
-                height: auto;
-                page-break-after: always;
-                padding: 15mm;
-                gap: 10px;
-            }
-            .page-title {
-                display: block;
-                margin-top: 0;
-                margin-bottom: 15px;
-                line-height: 1.3;
-            }
-            .page-title span {
-                display: inline;
-            }
-            .page-title .page-subtitle-display {
-                display: block;
-                color: #555;
-                margin-top: 5px;
-            }
-            .page-number-display { /* 印刷時もページ番号は表示 */
-                top: 10mm; /* 印刷時の位置調整 */
-                right: 10mm;
-                font-size: 0.8em;
-                color: #333;
-            }
-            .photo-controls input[type="file"] {
-                display: none;
-            }
-            .photo-entry {
-                flex-direction: row;
-                page-break-inside: avoid;
-                border: 1px solid #eee;
-                padding: 10px;
-                margin-bottom: 10px;
-            }
-            .photo-preview {
-                border: none;
-                padding: 0;
-                height: 160px; /* 印刷時のプレビュー高さを調整 */
-            }
-            .photo-preview img {
-                border: 1px solid #eee;
-                cursor: default; /* 印刷時にはカーソルを変更しない */
-            }
-            .photo-controls textarea {
-                border: none;
-                background-color: transparent;
-                height: auto;
-                resize: none;
-                overflow: hidden;
-                padding: 0;
-                font-size: 0.8em; /* 印刷時のメモのフォントサイズは固定 */
-            }
+            body { margin: 0; background-color: white; display: block; }
+            .main-layout-container { padding: 0; gap: 0; display: block; }
+            .control-panel { display: none; }
+            .album-content-pane { flex: none; width: 100%; gap: 0; max-height: none; overflow-y: visible; padding-right: 0; }
+            .print-page { margin: 0; box-shadow: none; border: none; height: auto; page-break-after: always; padding: 15mm; gap: 10px; }
+            .page-title { display: block; margin-top: 0; margin-bottom: 15px; line-height: 1.3; }
+            .page-title span { display: inline; }
+            .page-title .page-subtitle-display { display: block; color: #555; margin-top: 5px; }
+            .page-number-display { top: 10mm; right: 10mm; font-size: 0.8em; color: #333; }
+            .photo-controls input[type="file"] { display: none; }
+            .photo-entry { page-break-inside: avoid; border: 1px solid #eee; padding: 10px; margin-bottom: 10px; }
+            .photo-preview { border: none; padding: 0; height: 160px; }
+            .photo-preview img { border: 1px solid #eee; cursor: default; }
+            .photo-controls textarea { border: none; background-color: transparent; height: auto; resize: none; overflow: hidden; padding: 0; font-size: 0.8em; }
         }
     </style>
 </head>
@@ -513,89 +358,95 @@
     <div class="main-layout-container">
         <!-- 左側のコントロールパネル -->
         <div class="control-panel">
-            <div class="title-input-area">
-                <label for="mainTitleInput">メインタイトル:</label>
-                <input type="text" id="mainTitleInput" placeholder="ここにメインタイトルを入力してください" value="2025年9月鳥取・島根ドライブ旅行">
 
-                <label for="subtitleInput">サブタイトル:</label>
-                <input type="text" id="subtitleInput" placeholder="ここにサブタイトルを入力してください" value="(9/22)">
+            <!-- タブボタン -->
+            <div class="tab-buttons">
+                <button class="tab-button active" data-tab="settings-tab">設定</button>
+                <button class="tab-button" data-tab="actions-tab">操作</button>
             </div>
 
-            <hr style="border-top: 1px solid #eee;">
+            <!-- タブコンテンツコンテナ -->
+            <div class="tab-content-container">
 
-            <div class="font-settings-area">
-                <h3>タイトルフォント設定</h3>
-                <label for="mainTitleFontFamily">メインタイトル フォント:</label>
-                <select id="mainTitleFontFamily">
-                    <option value="メイリオ, 'Hiragino Sans', 'Yu Gothic', sans-serif">メイリオ / ゴシック</option>
-                    <option value="'BIZ UDPGothic', sans-serif">BIZ UDPゴシック</option>
-                    <option value="'BIZ UDGothic', sans-serif">BIZ UDゴシック</option>
-                    <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
-                    <option value="'Times New Roman', serif">Times New Roman</option>
-                    <option value="serif">セリフ系</option>
-                    <option value="monospace">等幅</option>
-                </select>
-                <label for="mainTitleFontSize">メインタイトル サイズ (px):</label>
-                <input type="number" id="mainTitleFontSize" min="16" max="72" value="32">
+                <!-- 設定タブ -->
+                <div id="settings-tab" class="tab-content active">
+                    <div class="title-input-area">
+                        <label for="mainTitleInput">メインタイトル:</label>
+                        <input type="text" id="mainTitleInput" placeholder="ここにメインタイトルを入力してください" value="2025年9月鳥取・島根ドライブ旅行">
 
-                <label for="subtitleFontFamily">サブタイトル フォント:</label>
-                <select id="subtitleFontFamily">
-                    <option value="メイリオ, 'Hiragino Sans', 'Yu Gothic', sans-serif">メイリオ / ゴシック</option>
-                    <option value="'BIZ UDPGothic', sans-serif">BIZ UDPゴシック</option>
-                    <option value="'BIZ UDGothic', sans-serif">BIZ UDゴシック</option>
-                    <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
-                    <option value="'Times New Roman', serif">Times New Roman</option>
-                    <option value="serif">セリフ系</option>
-                    <option value="monospace">等幅</option>
-                </select>
-                <label for="subtitleFontSize">サブタイトル サイズ (px):</label>
-                <input type="number" id="subtitleFontSize" min="10" max="48" value="20">
-            </div>
+                        <label for="subtitleInput">サブタイトル:</label>
+                        <input type="text" id="subtitleInput" placeholder="ここにサブタイトルを入力してください" value="(9/22)">
+                    </div>
 
-            <hr style="border-top: 1px solid #eee;">
+                    <div class="font-settings-area">
+                        <h3>タイトルフォント設定</h3>
+                        <label for="mainTitleFontFamily">メインタイトル フォント:</label>
+                        <select id="mainTitleFontFamily">
+                            <option value="メイリオ, 'Hiragino Sans', 'Yu Gothic', sans-serif">メイリオ / ゴシック</option>
+                            <option value="'BIZ UDPGothic', sans-serif">BIZ UDPゴシック</option>
+                            <option value="'BIZ UDGothic', sans-serif">BIZ UDゴシック</option>
+                            <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+                            <option value="'Times New Roman', serif">Times New Roman</option>
+                            <option value="serif">セリフ系</option>
+                            <option value="monospace">等幅</option>
+                        </select>
+                        <label for="mainTitleFontSize">メインタイトル サイズ (px):</label>
+                        <input type="number" id="mainTitleFontSize" min="16" max="72" value="32">
 
-            <!-- メモフォント設定の追加 -->
-            <div class="font-settings-area">
-                <h3>メモフォント設定</h3>
-                <label for="commentFontFamily">メモ フォント:</label>
-                <select id="commentFontFamily">
-                    <option value="メイリオ, 'Hiragino Sans', 'Yu Gothic', sans-serif">メイリオ / ゴシック</option>
-                    <option value="'BIZ UDPGothic', sans-serif">BIZ UDPゴシック</option>
-                    <option value="'BIZ UDGothic', sans-serif">BIZ UDゴシック</option>
-                    <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
-                    <option value="'Times New Roman', serif">Times New Roman</option>
-                    <option value="serif">セリフ系</option>
-                    <option value="monospace">等幅</option>
-                </select>
-                <label for="commentFontSize">メモ サイズ (px):</label>
-                <input type="number" id="commentFontSize" min="8" max="36" value="14">
-            </div>
-            <!-- メモフォント設定ここまで -->
+                        <label for="subtitleFontFamily">サブタイトル フォント:</label>
+                        <select id="subtitleFontFamily">
+                            <option value="メイリオ, 'Hiragino Sans', 'Yu Gothic', sans-serif">メイリオ / ゴシック</option>
+                            <option value="'BIZ UDPGothic', sans-serif">BIZ UDPゴシック</option>
+                            <option value="'BIZ UDGothic', sans-serif">BIZ UDゴシック</option>
+                            <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+                            <option value="'Times New Roman', serif">Times New Roman</option>
+                            <option value="serif">セリフ系</option>
+                            <option value="monospace">等幅</option>
+                        </select>
+                        <label for="subtitleFontSize">サブタイトル サイズ (px):</label>
+                        <input type="number" id="subtitleFontSize" min="10" max="48" value="20">
+                    </div>
 
-            <hr style="border-top: 1px solid #eee;">
-
-            <!-- ここから追加したHTML: ページ移動機能 -->
-            <div class="page-navigation-area">
-                <h3>ページ移動</h3>
-                <label for="pageGoInput">ページ番号へ移動:</label>
-                <div class="page-go-controls">
-                    <input type="number" id="pageGoInput" min="1" placeholder="番号">
-                    <button id="goToPageButton">移動</button>
+                    <div class="font-settings-area">
+                        <h3>メモフォント設定</h3>
+                        <label for="commentFontFamily">メモ フォント:</label>
+                        <select id="commentFontFamily">
+                            <option value="メイリオ, 'Hiragino Sans', 'Yu Gothic', sans-serif">メイリオ / ゴシック</option>
+                            <option value="'BIZ UDPGothic', sans-serif">BIZ UDPゴシック</option>
+                            <option value="'BIZ UDGothic', sans-serif">BIZ UDゴシック</option>
+                            <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+                            <option value="'Times New Roman', serif">Times New Roman</option>
+                            <option value="serif">セリフ系</option>
+                            <option value="monospace">等幅</option>
+                        </select>
+                        <label for="commentFontSize">メモ サイズ (px):</label>
+                        <input type="number" id="commentFontSize" min="8" max="36" value="14">
+                    </div>
                 </div>
-            </div>
-            <!-- ここまで追加したHTML -->
 
-            <hr style="border-top: 1px solid #eee;">
+                <!-- 操作タブ -->
+                <div id="actions-tab" class="tab-content">
+                    <div class="page-navigation-area">
+                        <h3>ページ移動</h3>
+                        <label for="pageGoInput">ページ番号へ移動:</label>
+                        <div class="page-go-controls">
+                            <input type="number" id="pageGoInput" min="1" placeholder="番号">
+                            <button id="goToPageButton">移動</button>
+                        </div>
+                    </div>
 
-            <div class="button-area">
-                <button id="addPageButton">新しいページを追加</button>
-                <button id="printButton">PDFとして印刷</button>
-                <hr style="border-top: 1px solid #eee;">
-                <label for="jsonFileInput" class="file-label">JSONファイルを読み込む</label>
-                <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
-                <button id="downloadJsonButton">JSONファイルをダウンロード</button>
-                <hr style="border-top: 1px solid #eee;">
-                <button id="initializeButton">アルバムを初期化</button>
+                    <div class="button-area">
+                        <button id="addPageButton">新しいページを追加</button>
+                        <button id="printButton">PDFとして印刷</button>
+                        <hr style="border-top: 1px solid #eee;">
+                        <label for="jsonFileInput" class="file-label">JSONファイルを読み込む</label>
+                        <input type="file" id="jsonFileInput" accept=".json" style="display:none;">
+                        <button id="downloadJsonButton">JSONファイルを保存</button>
+                        <hr style="border-top: 1px solid #eee;">
+                        <button id="initializeButton">アルバムを初期化</button>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -616,16 +467,16 @@
     <!-- モーダルウィンドウここまで -->
 
     <script>
-        let entry_id_counter = 0; // 全ての写真項目でユニークなIDを生成するためのカウンター
-        let page_number_counter = 0; // ページ番号を管理するためのカウンター
+        let entry_id_counter = 0;
+        let page_number_counter = 0;
 
-        // グローバル参照 (DOMContentLoaded後に設定)
+        // グローバル参照
         let mainTitleInput, subtitleInput;
         let mainTitleFontFamilyInput, mainTitleFontSizeInput;
         let subtitleFontFamilyInput, subtitleFontSizeInput;
         let commentFontFamilyInput, commentFontSizeInput;
         let pagesContainer;
-        let pageGoInput, goToPageButton; // 追加: ページ移動機能の要素
+        let pageGoInput, goToPageButton;
 
         // モーダル関連の要素
         let imageModal, modalImage, modalCaption, modalClose;
@@ -648,7 +499,7 @@
             });
         }
 
-        // 単一の写真項目 (div.photo-entry) を作成する関数
+        // 単一の写真項目を作成する関数
         function createPhotoEntryElement(imageData = '', commentText = '') {
             entry_id_counter++;
             const entryId = entry_id_counter;
@@ -725,13 +576,10 @@
             });
             page_number_counter = pages.length;
             
-            // --- ここから追加したJavaScript ---
-            // ページ移動入力のmax値とプレースホルダーを更新
             if (pageGoInput) {
                 pageGoInput.max = page_number_counter;
                 pageGoInput.placeholder = `1-${page_number_counter}`;
             }
-            // --- ここまで追加したJavaScript ---
         }
 
         // コメント（メモ）のスタイルを更新する関数
@@ -745,8 +593,7 @@
             });
         }
 
-
-        // 新しいページ (div.print-page) を作成し、写真項目を追加する関数
+        // 新しいページを作成し、写真項目を追加する関数
         function createNewPageElement(photoEntriesData = null) {
             page_number_counter++;
 
@@ -794,7 +641,7 @@
             return pageDiv;
         }
 
-        // 現在のアルバムデータをオブジェクトとして取得するヘルパー関数
+        // 現在のアルバムデータをオブジェクトとして取得する関数
         function getAlbumData() {
             const albumData = {
                 mainTitle: mainTitleInput.value || '',
@@ -809,9 +656,7 @@
             };
 
             document.querySelectorAll('.print-page').forEach(pageDiv => {
-                const pageData = {
-                    photoEntries: []
-                };
+                const pageData = { photoEntries: [] };
                 pageDiv.querySelectorAll('.photo-entry').forEach(entryDiv => {
                     const img = entryDiv.querySelector('img');
                     const textarea = entryDiv.querySelector('textarea');
@@ -825,7 +670,7 @@
             return albumData;
         }
 
-        // アルバムデータを（ファイルから）アプリに読み込む関数
+        // アルバムデータをアプリに読み込む関数
         function loadAlbumDataIntoApp(albumData) {
             pagesContainer.innerHTML = '';
             entry_id_counter = 0;
@@ -851,10 +696,8 @@
         function downloadAlbumAsJson() {
             const albumData = getAlbumData();
             const jsonString = JSON.stringify(albumData, null, 2);
-
             const blob = new Blob([jsonString], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-
             const a = document.createElement('a');
             a.href = url;
             const date = new Date();
@@ -874,7 +717,6 @@
                 alert('ファイルが選択されていません。');
                 return;
             }
-
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
@@ -909,12 +751,9 @@
             commentFontFamilyInput.value = commentFontFamilyInput.options[0].value;
             commentFontSizeInput.value = "14";
             
-            // --- ここから追加したJavaScript ---
-            // ページ移動入力もリセット
             if (pageGoInput) {
                 pageGoInput.value = '';
             }
-            // --- ここまで追加したJavaScript ---
             
             createNewPageElement();
             if(showConfirm) alert('アルバムが初期化されました。');
@@ -922,6 +761,7 @@
 
 
         document.addEventListener('DOMContentLoaded', () => {
+            // 要素の取得
             mainTitleInput = document.getElementById('mainTitleInput');
             subtitleInput = document.getElementById('subtitleInput');
             mainTitleFontFamilyInput = document.getElementById('mainTitleFontFamily');
@@ -931,58 +771,62 @@
             commentFontFamilyInput = document.getElementById('commentFontFamily');
             commentFontSizeInput = document.getElementById('commentFontSize');
             pagesContainer = document.getElementById('pages-container');
-            pageGoInput = document.getElementById('pageGoInput');         // 追加
-            goToPageButton = document.getElementById('goToPageButton'); // 追加
-
+            pageGoInput = document.getElementById('pageGoInput');
+            goToPageButton = document.getElementById('goToPageButton');
             imageModal = document.getElementById('imageModal');
             modalImage = document.getElementById('modalImage');
             modalCaption = document.getElementById('caption');
             modalClose = document.querySelector('.modal-close');
-
-
             const addPageButton = document.getElementById('addPageButton');
             const printButton = document.getElementById('printButton');
             const downloadJsonButton = document.getElementById('downloadJsonButton');
             const initializeButton = document.getElementById('initializeButton');
             const jsonFileInput = document.getElementById('jsonFileInput');
 
+            // --- ここからタブ切り替えのJavaScriptを追加 ---
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTabId = button.dataset.tab;
+
+                    // すべてのボタンとコンテンツから 'active' クラスを削除
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+
+                    // クリックされたボタンと対応するコンテンツに 'active' クラスを追加
+                    button.classList.add('active');
+                    document.getElementById(targetTabId).classList.add('active');
+                });
+            });
+            // --- ここまでタブ切り替えのJavaScript ---
+
             initializeAlbum(false);
 
+            // イベントリスナーの設定
             mainTitleInput.addEventListener('input', updatePageTitles);
             subtitleInput.addEventListener('input', updatePageTitles);
-            
             mainTitleFontFamilyInput.addEventListener('change', updatePageTitles);
             mainTitleFontSizeInput.addEventListener('input', updatePageTitles);
             subtitleFontFamilyInput.addEventListener('change', updatePageTitles);
             subtitleFontSizeInput.addEventListener('input', updatePageTitles);
-
             commentFontFamilyInput.addEventListener('change', updateCommentStyles);
             commentFontSizeInput.addEventListener('input', updateCommentStyles);
-
-
             addPageButton.addEventListener('click', () => {
                 const newPage = createNewPageElement();
                 newPage.scrollIntoView({ behavior: 'smooth', block: 'end' });
             });
-
-            printButton.addEventListener('click', () => {
-                window.print();
-            });
-
+            printButton.addEventListener('click', () => { window.print(); });
             downloadJsonButton.addEventListener('click', downloadAlbumAsJson);
-            
             jsonFileInput.addEventListener('change', handleJsonFileUpload);
-
             initializeButton.addEventListener('click', initializeAlbum);
-
-            // --- ここから追加したJavaScript: ページ移動ボタンのイベントリスナー ---
             goToPageButton.addEventListener('click', () => {
                 const pageNumber = parseInt(pageGoInput.value, 10);
                 if (!pageNumber || pageNumber < 1 || pageNumber > page_number_counter) {
                     alert(`1から${page_number_counter}までの有効なページ番号を入力してください。`);
                     return;
                 }
-
                 const targetPage = document.querySelector(`.print-page[data-page-number="${pageNumber}"]`);
                 if (targetPage) {
                     targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -990,13 +834,9 @@
                     alert('指定されたページが見つかりませんでした。');
                 }
             });
-            // --- ここまで追加したJavaScript ---
 
-
-            modalClose.addEventListener('click', () => {
-                imageModal.style.display = 'none';
-            });
-
+            // モーダルの閉じるイベント
+            modalClose.addEventListener('click', () => { imageModal.style.display = 'none'; });
             imageModal.addEventListener('click', (event) => {
                 if (event.target === imageModal) {
                     imageModal.style.display = 'none';
