@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>写真アルバムアプリ Ver1.20 (タブUI版)</title>
+    <title>写真アルバムアプリ Ver1.30 (タブUI版)</title>
     <style>
         /* 全体的なスタイル */
         body {
@@ -213,7 +213,7 @@
             width: 210mm;
             margin: 0 auto;
             padding: 20mm;
-            background-color: white;
+            background: linear-gradient(135deg, #e6fffa 0%, #d4f7e8 100%);
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
             display: flex;
@@ -314,17 +314,17 @@
         /* モーダルウィンドウ */
         .modal {
             display: none; position: fixed; z-index: 1000; padding-top: 60px;
-            left: 0; top: 0; width: 100%; height: 100%; overflow: auto;
+            left: 0; top: 0; width: 90%; height: 90%; overflow: auto;
             background-color: rgba(0,0,0,0.9);
         }
         .modal-content {
-            margin: auto; display: block; width: 90%; max-width: 90vw;
+            margin: auto; display: block; width: 80%; max-width: 80vw;
             max-height: 90vh; object-fit: contain; border: 1px solid #fff;
         }
         .modal-caption {
-            margin: auto; display: block; width: 90%; max-width: 90vw;
-            text-align: center; color: #eee; padding: 15px 0 20px 0;
-            height: auto; max-height: 150px; overflow-y: auto;
+            margin: auto; display: block; width: 80%; max-width: 80vw;
+            text-align: center; color: #eee; padding: 20px 10px; /* ★変更点 */
+            height: auto; max-height: 250px; /* ★変更点 */ overflow-y: auto;
         }
         .modal-close {
             position: absolute; top: 15px; right: 35px; color: #f1f1f1;
@@ -340,7 +340,7 @@
             .main-layout-container { padding: 0; gap: 0; display: block; }
             .control-panel { display: none; }
             .album-content-pane { flex: none; width: 100%; gap: 0; max-height: none; overflow-y: visible; padding-right: 0; }
-            .print-page { margin: 0; box-shadow: none; border: none; height: auto; page-break-after: always; padding: 15mm; gap: 10px; }
+            .print-page { margin: 0; box-shadow: none; border: none; height: auto; page-break-after: always; padding: 15mm; gap: 10px; background: white; }
             .page-title { display: block; margin-top: 0; margin-bottom: 15px; line-height: 1.3; }
             .page-title span { display: inline; }
             .page-title .page-subtitle-display { display: block; color: #555; margin-top: 5px; }
@@ -361,15 +361,17 @@
 
             <!-- タブボタン -->
             <div class="tab-buttons">
-                <button class="tab-button active" data-tab="settings-tab">設定</button>
-                <button class="tab-button" data-tab="actions-tab">操作</button>
+                <!-- ★変更点: activeクラスを移動 -->
+                <button class="tab-button" data-tab="settings-tab">設定</button>
+                <button class="tab-button active" data-tab="actions-tab">操作</button>
             </div>
 
             <!-- タブコンテンツコンテナ -->
             <div class="tab-content-container">
 
                 <!-- 設定タブ -->
-                <div id="settings-tab" class="tab-content active">
+                <!-- ★変更点: activeクラスを削除 -->
+                <div id="settings-tab" class="tab-content">
                     <div class="title-input-area">
                         <label for="mainTitleInput">メインタイトル:</label>
                         <input type="text" id="mainTitleInput" placeholder="ここにメインタイトルを入力してください" value="2025年9月鳥取・島根ドライブ旅行">
@@ -425,7 +427,8 @@
                 </div>
 
                 <!-- 操作タブ -->
-                <div id="actions-tab" class="tab-content">
+                <!-- ★変更点: activeクラスを追加 -->
+                <div id="actions-tab" class="tab-content active">
                     <div class="page-navigation-area">
                         <h3>ページ移動</h3>
                         <label for="pageGoInput">ページ番号へ移動:</label>
