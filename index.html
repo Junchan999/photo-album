@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>写真アルバムアプリ Ver1.30 (タブUI版)</title>
+    <title>写真アルバムアプリ Ver1.40 (タブUI版)</title>
     <style>
         /* 全体的なスタイル */
         body {
@@ -171,6 +171,9 @@
         #printButton:hover { background-color: #218838; }
         #addPageButton { background-color: #007bff; color: white; }
         #addPageButton:hover { background-color: #0056b3; }
+        /* ★変更点: 取扱説明書ボタンのスタイルを追加 */
+        #manualButton { background-color: #17a2b8; color: white; }
+        #manualButton:hover { background-color: #138496; }
         #initializeButton { background-color: #dc3545; color: white; }
         #initializeButton:hover { background-color: #c82333; }
         #downloadJsonButton { background-color: #6c757d; color: white; }
@@ -323,8 +326,8 @@
         }
         .modal-caption {
             margin: auto; display: block; width: 80%; max-width: 80vw;
-            text-align: center; color: #eee; padding: 20px 10px; /* ★変更点 */
-            height: auto; max-height: 250px; /* ★変更点 */ overflow-y: auto;
+            text-align: center; color: #eee; padding: 20px 10px;
+            height: auto; max-height: 250px; overflow-y: auto;
         }
         .modal-close {
             position: absolute; top: 15px; right: 35px; color: #f1f1f1;
@@ -361,7 +364,6 @@
 
             <!-- タブボタン -->
             <div class="tab-buttons">
-                <!-- ★変更点: activeクラスを移動 -->
                 <button class="tab-button" data-tab="settings-tab">設定</button>
                 <button class="tab-button active" data-tab="actions-tab">操作</button>
             </div>
@@ -370,7 +372,6 @@
             <div class="tab-content-container">
 
                 <!-- 設定タブ -->
-                <!-- ★変更点: activeクラスを削除 -->
                 <div id="settings-tab" class="tab-content">
                     <div class="title-input-area">
                         <label for="mainTitleInput">メインタイトル:</label>
@@ -427,7 +428,6 @@
                 </div>
 
                 <!-- 操作タブ -->
-                <!-- ★変更点: activeクラスを追加 -->
                 <div id="actions-tab" class="tab-content active">
                     <div class="page-navigation-area">
                         <h3>ページ移動</h3>
@@ -440,6 +440,8 @@
 
                     <div class="button-area">
                         <button id="addPageButton">新しいページを追加</button>
+                        <!-- ★変更点: 取扱説明書ボタンを追加 -->
+                        <button id="manualButton">取扱説明書を見る</button>
                         <button id="printButton">PDFとして印刷</button>
                         <hr style="border-top: 1px solid #eee;">
                         <label for="jsonFileInput" class="file-label">JSONファイルを読み込む</label>
@@ -762,6 +764,84 @@
             if(showConfirm) alert('アルバムが初期化されました。');
         }
 
+        // ★変更点: 取扱説明書を別ウィンドウで表示する関数を追加
+        function showManual() {
+            const manualHtml = `
+        <!DOCTYPE html>
+        <html lang="ja">
+        <head>
+            <meta charset="UTF-8">
+            <title>写真アルバムアプリ Ver1.40 取扱説明書</title>
+            <style>
+                body { font-family: 'メイリオ', 'Hiragino Sans', 'Yu Gothic', sans-serif; line-height: 1.8; padding: 25px; max-width: 800px; margin: 20px auto; color: #333; }
+                h1, h2, h3 { color: #0056b3; }
+                h1 { border-bottom: 3px solid #007bff; padding-bottom: 10px; font-size: 2em; }
+                h2 { border-left: 6px solid #007bff; padding-left: 12px; margin-top: 50px; font-size: 1.5em; }
+                code { background-color: #e9ecef; padding: 3px 6px; border-radius: 4px; font-family: Consolas, 'Courier New', monospace; }
+                ul, ol { padding-left: 25px; }
+                li { margin-bottom: 12px; }
+                strong { color: #0056b3; font-weight: bold; }
+                .container { background-color: #fff; padding: 20px 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>写真アルバムアプリ Ver1.40 取扱説明書</h1>
+                <p>このアプリは、ブラウザ上で簡単に写真アルバムを作成、編集、保存、印刷できるツールです。全てのデータはご使用のブラウザ内に保存されます。</p>
+
+                <h2>画面構成</h2>
+                <p>画面は大きく分けて、左側の<strong>「コントロールパネル」</strong>と右側の<strong>「アルバムコンテンツ」</strong>の2つで構成されています。</p>
+                <ul>
+                    <li><strong>コントロールパネル:</strong> アプリ全体の設定や操作を行います。「設定」と「操作」のタブで機能を切り替えます。</li>
+                    <li><strong>アルバムコンテンツ:</strong> 作成したアルバムのプレビューが表示されます。実際の印刷イメージに近い形で確認できます。</li>
+                </ul>
+
+                <h2>基本的な使い方</h2>
+                <ol>
+                    <li><strong>タイトルの設定:</strong> 左パネルの「設定」タブで、アルバムのメインタイトルとサブタイトルを入力します。フォントの種類やサイズも変更できます。</li>
+                    <li><strong>写真のアップロード:</strong> 右側の各写真エリアにある「ファイルを選択」ボタン（またはその上の領域）をクリックして、表示したい写真ファイルを選びます。</li>
+                    <li><strong>コメントの入力:</strong> 写真の横にあるテキストエリアに、思い出などのコメントを自由に入力します。</li>
+                    <li><strong>ページの追加:</strong> 写真が足りなくなったら、「操作」タブの「新しいページを追加」ボタンでページを増やせます。1ページに4枚の写真を配置できます。</li>
+                    <li><strong>印刷:</strong> アルバムが完成したら、「PDFとして印刷」ボタンを押すと、お使いのブラウザの印刷機能が起動します。ここでPDFとして保存したり、直接プリンターで印刷したりできます。</li>
+                </ol>
+
+                <h2>各機能の詳細</h2>
+                <h3>「設定」タブ</h3>
+                <ul>
+                    <li><strong>タイトル入力:</strong> メインタイトルとサブタイトルを設定します。リアルタイムで右側のプレビューに反映されます。</li>
+                    <li><strong>タイトルフォント設定:</strong> タイトルとサブタイトルのフォントファミリーと文字サイズを調整できます。</li>
+                    <li><strong>メモフォント設定:</strong> 各写真に添えるコメント（メモ）のフォントファミリーと文字サイズを調整できます。</li>
+                </ul>
+
+                <h3>「操作」タブ</h3>
+                <ul>
+                    <li><strong>ページ移動:</strong> ページ番号を入力して「移動」ボタンを押すと、指定したページへジャンプします。長いアルバムで便利です。</li>
+                    <li><strong>新しいページを追加:</strong> アルバムの末尾に新しいページ（写真4枚分）を追加します。</li>
+                    <li><strong>取扱説明書を見る:</strong> この取扱説明書を表示します。</li>
+                    <li><strong>PDFとして印刷:</strong> ブラウザの印刷ダイアログを開きます。ここで「送信先」を「PDFに保存」などに設定してファイル化できます。</li>
+                    <li><strong>JSONファイルを読み込む:</strong> 以前に保存したアルバムデータ（<code>.json</code>ファイル）を読み込んで、編集を再開できます。</li>
+                    <li><strong>JSONファイルを保存:</strong> 現在編集中のアルバムデータを<code>.json</code>形式のファイルとしてPCに保存します。大切なデータのバックアップに利用してください。</li>
+                    <li><strong>アルバムを初期化:</strong> 現在のアルバム内容をすべて消去し、最初の状態に戻します。この操作は元に戻せないのでご注意ください。</li>
+                </ul>
+
+                <h2>その他の便利な機能</h2>
+                <ul>
+                    <li><strong>画像の拡大表示:</strong> プレビュー上の写真をクリックすると、大きなウィンドウで画像とコメントを確認できます。ウィンドウの外側か、右上の「×」ボタンをクリックすると閉じます。</li>
+                </ul>
+            </div>
+        </body>
+        </html>
+            `;
+            const manualWindow = window.open('', 'PhotoAlbumManual', 'width=880,height=750,scrollbars=yes,resizable=yes');
+            if (manualWindow) {
+                manualWindow.document.write(manualHtml);
+                manualWindow.document.close();
+                manualWindow.focus();
+            } else {
+                alert('ポップアップウィンドウがブロックされました。ブラウザの設定を確認してください。');
+            }
+        }
+
 
         document.addEventListener('DOMContentLoaded', () => {
             // 要素の取得
@@ -785,6 +865,7 @@
             const downloadJsonButton = document.getElementById('downloadJsonButton');
             const initializeButton = document.getElementById('initializeButton');
             const jsonFileInput = document.getElementById('jsonFileInput');
+            const manualButton = document.getElementById('manualButton'); // ★変更点: ボタン要素を取得
 
             // --- ここからタブ切り替えのJavaScriptを追加 ---
             const tabButtons = document.querySelectorAll('.tab-button');
@@ -824,6 +905,7 @@
             downloadJsonButton.addEventListener('click', downloadAlbumAsJson);
             jsonFileInput.addEventListener('change', handleJsonFileUpload);
             initializeButton.addEventListener('click', initializeAlbum);
+            manualButton.addEventListener('click', showManual); // ★変更点: イベントリスナーを設定
             goToPageButton.addEventListener('click', () => {
                 const pageNumber = parseInt(pageGoInput.value, 10);
                 if (!pageNumber || pageNumber < 1 || pageNumber > page_number_counter) {
