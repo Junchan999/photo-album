@@ -3,48 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>写真アルバムアプリ Ver1.60 (サムネイル機能付き)</title>
+    <title>写真アルバムアプリ Ver1.70 (サムネイル機能付き) - 最終修正版</title>
     <style>
-        /* ▼▼▼▼▼ [CSS] レイアウトとサムネイル関連のスタイルを大幅に変更・追加 ▼▼▼▼▼ */
+        /* CSS部分は変更ありません */
         :root { --control-panel-width: 350px; --thumbnail-panel-width: 240px; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f0f2f5; color: #333; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .main-layout-container { display: flex; flex-grow: 1; gap: 20px; padding: 20px; box-sizing: border-box; overflow: hidden; }
-
-        /* --- 各ペインの基本設定 --- */
-        .control-panel, .album-content-pane, .thumbnail-pane {
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05);
-            border-radius: 8px;
-            max-height: 100%;
-            overflow-y: auto;
-            box-sizing: border-box;
-        }
+        .control-panel, .album-content-pane, .thumbnail-pane { background-color: white; box-shadow: 0 0 10px rgba(0,0,0,0.05); border-radius: 8px; max-height: 100%; overflow-y: auto; box-sizing: border-box; }
         .control-panel { flex: 0 0 var(--control-panel-width); padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .album-content-pane { flex: 1; padding: 0 10px; }
         .thumbnail-pane { flex: 0 0 var(--thumbnail-panel-width); padding: 15px; }
-        
         .control-panel::-webkit-scrollbar, .album-content-pane::-webkit-scrollbar, .thumbnail-pane::-webkit-scrollbar { width: 8px; }
         .control-panel::-webkit-scrollbar-track, .album-content-pane::-webkit-scrollbar-track, .thumbnail-pane::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         .control-panel::-webkit-scrollbar-thumb, .album-content-pane::-webkit-scrollbar-thumb, .thumbnail-pane::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
         .control-panel::-webkit-scrollbar-thumb:hover, .album-content-pane::-webkit-scrollbar-thumb:hover, .thumbnail-pane::-webkit-scrollbar-thumb:hover { background: #555; }
-        
-        /* --- サムネイルペインのスタイル --- */
         #thumbnail-container { display: flex; flex-direction: column; gap: 15px; }
         .thumbnail-item { border: 3px solid #ddd; border-radius: 5px; padding: 5px; cursor: pointer; transition: all 0.3s; }
         .thumbnail-item:hover { border-color: #007bff; }
         .thumbnail-item.active { border-color: #ffc107; box-shadow: 0 0 8px rgba(255, 193, 7, 0.7); transform: scale(1.02); }
-        .thumbnail-preview-wrapper { width: 100%; height: 0; padding-bottom: 141.42%; /* A4比率 (297/210) */ position: relative; overflow: hidden; background-color: #e9ecef; }
-        .thumbnail-preview-wrapper .print-page {
-            position: absolute; top: 0; left: 0;
-            /* プレビュー幅(約200px) / A4幅(210mm≒794px) ≒ 0.252 */
-            transform: scale(0.252);
-            transform-origin: top left;
-            pointer-events: none; /* クリックなどのイベントを無効化 */
-        }
+        .thumbnail-preview-wrapper { width: 100%; height: 0; padding-bottom: 141.42%; position: relative; overflow: hidden; background-color: #e9ecef; }
+        .thumbnail-preview-wrapper .print-page { position: absolute; top: 0; left: 0; transform: scale(0.252); transform-origin: top left; pointer-events: none; }
         .thumbnail-info { text-align: center; font-weight: bold; padding-top: 5px; color: #555; }
-        
-        /* --- その他既存のスタイル (変更点はほぼ無し) --- */
-        .album-content-pane .print-page { margin: 15px auto; } /* 中央ペインのページマージン調整 */
+        .album-content-pane .print-page { margin: 15px auto; }
         .tab-buttons { display: flex; border-bottom: 2px solid #dee2e6; }
         .tab-button { flex: 1; padding: 10px 15px; cursor: pointer; background-color: #f8f9fa; border: 1px solid transparent; border-bottom: none; border-radius: 5px 5px 0 0; font-size: 1em; color: #495057; transition: background-color 0.3s, color 0.3s; text-align: center; }
         .tab-button:hover { background-color: #e9ecef; }
@@ -81,19 +61,22 @@
         .photo-controls { display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; }
         .photo-controls input[type="file"] { border: 1px solid #007bff; padding: 5px; border-radius: 4px; background-color: #eaf6ff; cursor: pointer; width: 100%; box-sizing: border-box; }
         .photo-controls textarea { width: 100%; height: 60px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; font-size: 0.9em; box-sizing: border-box; }
-        .layout-fullpage-1 .page-content { gap: 0; } .layout-fullpage-1 .photo-entry { padding: 0; border: none; } .layout-fullpage-1 .photo-preview { border: none; } .layout-fullpage-1 .photo-controls { position: absolute; bottom: 12mm; left: 12mm; right: 12mm; z-index: 5; } .layout-fullpage-1 .photo-controls textarea { background-color: rgba(255,255,255,0.8); border: 1px solid #888; height: 50px; } .layout-fullpage-1 .photo-entry:nth-child(n+2) { display: none; } .layout-vertical-2 .page-content { display: flex; flex-direction: column; } .layout-vertical-2 .photo-controls textarea { height: 50px; } .layout-vertical-2 .photo-entry:nth-child(n+3) { display: none; } .layout-vertical-3 .page-content { display: flex; flex-direction: column; } .layout-vertical-3 .photo-controls textarea { height: 40px; } .layout-vertical-3 .photo-entry:nth-child(n+4) { display: none; } .layout-vertical-4 .page-content { display: flex; flex-direction: column; } .layout-vertical-4 .photo-controls textarea { height: 35px; } .layout-vertical-4 .photo-entry:nth-child(n+5) { display: none; } .layout-grid-2x2 .page-content { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; } .layout-grid-2x2 .photo-controls textarea { height: 50px; } .layout-grid-2x2 .photo-entry:nth-child(n+5) { display: none; } .layout-grid-2x3 .page-content { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; } .layout-grid-2x3 .photo-controls textarea { height: 40px; } .layout-grid-2x3 .photo-entry:nth-child(n+7) { display: none; } .layout-grid-2x4 .page-content { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr 1fr; } .layout-grid-2x4 .photo-controls textarea { height: 30px; }
+        .layout-fullpage-1 .page-content { gap: 0; } .layout-fullpage-1 .photo-entry { padding: 0; border: none; } .layout-fullpage-1 .photo-preview { border: none; } .layout-fullpage-1 .photo-controls { position: absolute; bottom: 12mm; left: 12mm; right: 12mm; z-index: 5; } .layout-fullpage-1 .photo-controls textarea { background-color: rgba(255,255,255,0.8); border: 1px solid #888; height: 50px; } .layout-fullpage-1 .photo-entry:nth-child(n+2) { display: none; }
+        .layout-vertical-2 .page-content { display: flex; flex-direction: column; } .layout-vertical-2 .photo-controls textarea { height: 50px; } .layout-vertical-2 .photo-entry:nth-child(n+3) { display: none; }
+        .layout-vertical-3 .page-content { display: flex; flex-direction: column; } .layout-vertical-3 .photo-controls textarea { height: 40px; } .layout-vertical-3 .photo-entry:nth-child(n+4) { display: none; }
+        .layout-vertical-4 .page-content { display: flex; flex-direction: column; } .layout-vertical-4 .photo-controls textarea { height: 35px; } .layout-vertical-4 .photo-entry:nth-child(n+5) { display: none; }
+        .layout-grid-2x2 .page-content { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; } .layout-grid-2x2 .photo-controls textarea { height: 50px; } .layout-grid-2x2 .photo-entry:nth-child(n+5) { display: none; }
+        .layout-grid-2x3 .page-content { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; } .layout-grid-2x3 .photo-controls textarea { height: 40px; } .layout-grid-2x3 .photo-entry:nth-child(n+7) { display: none; }
+        .layout-grid-2x4 .page-content { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr 1fr; } .layout-grid-2x4 .photo-controls textarea { height: 30px; } .layout-grid-2x4 .photo-entry:nth-child(n+9) { display: none; }
         .modal { display: none; position: fixed; z-index: 1000; padding-top: 60px; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9); } .modal-content { margin: auto; display: block; width: 80%; max-width: 80vw; max-height: 90vh; object-fit: contain; } .modal-caption { position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.6); border-radius: 5px; box-sizing: border-box; margin: 0; display: block; width: 80%; max-width: 80vw; text-align: center; color: #eee; padding: 15px 20px; height: auto; max-height: 250px; overflow-y: auto; } .modal-close { position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; transition: 0.3s; cursor: pointer; } .modal-close:hover, .modal-close:focus { color: #bbb; text-decoration: none; cursor: pointer; } @keyframes zoom { from {transform:scale(0)} to {transform:scale(1)} }
         #spinner-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 2000; display: none; justify-content: center; align-items: center; flex-direction: column; gap: 20px; } .spinner { border: 8px solid #f3f3f3; border-top: 8px solid #3498db; border-radius: 50%; width: 60px; height: 60px; animation: spin 1.5s linear infinite; } #spinner-text { color: white; font-size: 1.2em; font-weight: bold; } @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .page-controls-header { position: absolute; top: 5px; left: 5px; z-index: 15; display: flex; gap: 5px; background-color: rgba(255, 255, 255, 0.5); padding: 3px; border-radius: 5px; } .page-control-btn { border: none; background-color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; font-size: 1.2em; cursor: pointer; transition: background-color 0.2s; } .page-control-btn:hover { background-color: #f0f0f0; } .move-page-btn { cursor: pointer; color: #007bff; } .delete-page-btn { color: #dc3545; }
         .page-move-modal { display: none; position: fixed; z-index: 1500; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; } .page-move-modal-content { background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; } .page-move-modal-content h3 { margin: 0; color: #0056b3; } .page-move-modal-content select { width: 100%; padding: 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px; } .page-move-modal-actions { display: flex; justify-content: flex-end; gap: 10px; } .page-move-modal-actions button { padding: 8px 16px; font-size: 1em; border-radius: 4px; border: 1px solid #ccc; cursor: pointer; } .page-move-modal-actions .confirm-btn { background-color: #007bff; color: white; border-color: #007bff; }
         @media print { .print-page { height: 277mm; margin: 0; box-shadow: none; border: none; page-break-after: always; padding: 10mm; gap: 5px; background: white; } body { margin: 0; background-color: white; display: block; } .main-layout-container { padding: 0; gap: 0; display: block; } .control-panel, .thumbnail-pane, .layout-selector, .page-controls-header { display: none; } .album-content-pane { flex: none; width: 100%; gap: 0; max-height: none; overflow-y: visible; padding-right: 0; } .page-title { margin-bottom: 10px; } .page-number-display { top: 8mm; left: 8mm; font-size: 0.8em; color: #333; } .photo-controls input[type="file"] { display: none; } .photo-entry { border: none; padding: 0; gap: 3px; } .photo-preview { border: 1px solid #eee; } .photo-preview img { cursor: default; } .photo-controls textarea { border: none; background-color: transparent; height: auto; resize: none; overflow: hidden; padding: 0; font-size: 0.8em; line-height: 1.3; } .layout-fullpage-1 .photo-controls { bottom: 10mm; left: 10mm; right: 10mm; } .layout-fullpage-1 .photo-controls textarea { background-color: rgba(250,250,250,0.7); } }
-        /* ▲▲▲▲▲ [CSS] ここまで ▲▲▲▲▲ */
     </style>
 </head>
 <body>
-    <!-- ▼▼▼▼▼ [HTML] 3ペイン構成に変更 ▼▼▼▼▼ -->
     <div class="main-layout-container">
-        <!-- (左) コントロールパネル -->
         <div class="control-panel">
             <div class="tab-buttons"><button class="tab-button" data-tab="settings-tab">設定</button><button class="tab-button active" data-tab="actions-tab">操作</button></div>
             <div class="tab-content-container">
@@ -116,25 +99,18 @@
                 </div>
             </div>
         </div>
-        
-        <!-- (中央) アルバムコンテンツペイン -->
         <div class="album-content-pane">
             <div id="pages-container"></div>
         </div>
-
-        <!-- (右) サムネイルペイン -->
         <div class="thumbnail-pane">
             <div id="thumbnail-container"></div>
         </div>
     </div>
-    <!-- ▲▲▲▲▲ [HTML] ここまで ▲▲▲▲▲ -->
-
     <div id="imageModal" class="modal"><span class="modal-close">&times;</span><img class="modal-content" id="modalImage"><div id="caption" class="modal-caption"></div></div>
     <div id="spinner-overlay"><div class="spinner"></div><p id="spinner-text">処理中...</p></div>
     <div id="pageMoveModal" class="page-move-modal"><div class="page-move-modal-content"><h3 id="movePageInfo">ページの移動</h3><select id="moveDestinationSelect"></select><div class="page-move-modal-actions"><button id="cancelMoveBtn">キャンセル</button><button id="confirmMoveBtn" class="confirm-btn">決定</button></div></div></div>
 
     <script>
-        // ▼▼▼▼▼ [JS] 変数宣言にサムネイル関連を追加 ▼▼▼▼▼
         let entry_id_counter = 0, page_number_counter = 0;
         let mainTitleInput, subtitleInput, mainTitleFontFamilyInput, mainTitleFontSizeInput;
         let subtitleFontFamilyInput, subtitleFontSizeInput, commentFontFamilyInput, commentFontSizeInput;
@@ -143,53 +119,43 @@
         let spinnerOverlay;
         let pageMoveModal, pageToMove = null;
         let thumbnailContainer, intersectionObserver;
-        // ▲▲▲▲▲ [JS] ここまで ▲▲▲▲▲
-
+        
         const LAYOUTS = { 'layout-fullpage-1': '全面1枚', 'layout-vertical-2': '縦2枚', 'layout-vertical-3': '縦3枚', 'layout-vertical-4': '縦4枚', 'layout-grid-2x2': '2x2 グリッド (計4枚)', 'layout-grid-2x3': '2x3 グリッド (計6枚)', 'layout-grid-2x4': '2x4 グリッド (計8枚)' };
+        const LAYOUT_ENTRY_COUNTS = { 'layout-fullpage-1': 1, 'layout-vertical-2': 2, 'layout-vertical-3': 3, 'layout-vertical-4': 4, 'layout-grid-2x2': 4, 'layout-grid-2x3': 6, 'layout-grid-2x4': 8 };
         const MAX_DIMENSION = 1600, QUALITY = 0.8; 
 
         function showSpinner(message = '処理中...') { spinnerOverlay.querySelector('#spinner-text').textContent = message; spinnerOverlay.style.display = 'flex'; }
         function hideSpinner() { spinnerOverlay.style.display = 'none'; }
 
-        // ▼▼▼▼▼ [JS] サムネイルを再描画する関数を追加 ▼▼▼▼▼
+        // ▼▼▼ [修正] サムネイル作成元のページを `#pages-container` 内に限定 ▼▼▼
         function renderThumbnails() {
             thumbnailContainer.innerHTML = '';
-            const pages = document.querySelectorAll('.print-page');
-
+            const pages = pagesContainer.querySelectorAll('.print-page'); // documentからpagesContainerに変更
             pages.forEach(page => {
                 const pageNum = page.dataset.pageNumber;
-
                 const thumbItem = document.createElement('div');
                 thumbItem.className = 'thumbnail-item';
                 thumbItem.dataset.targetPageNumber = pageNum;
-
                 const wrapper = document.createElement('div');
                 wrapper.className = 'thumbnail-preview-wrapper';
-                
                 const clonedPage = page.cloneNode(true);
                 clonedPage.querySelectorAll('button, input, select, textarea').forEach(el => el.disabled = true);
                 clonedPage.style.margin = '0';
                 clonedPage.style.boxShadow = 'none';
                 clonedPage.style.height = '297mm';
                 wrapper.appendChild(clonedPage);
-
                 const info = document.createElement('div');
                 info.className = 'thumbnail-info';
                 info.textContent = `Page ${pageNum}`;
-                
                 thumbItem.appendChild(wrapper);
                 thumbItem.appendChild(info);
                 thumbnailContainer.appendChild(thumbItem);
             });
         }
-        // ▲▲▲▲▲ [JS] ここまで ▲▲▲▲▲
-
-        // ▼▼▼▼▼ [JS] スクロールとサムネイルのハイライトを連動させる関数を追加 ▼▼▼▼▼
+        
         function setupIntersectionObserver() {
             if (intersectionObserver) intersectionObserver.disconnect();
-
             const options = { root: albumContentPane, rootMargin: '-50% 0px -50% 0px', threshold: 0 };
-            
             intersectionObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     const pageNum = entry.target.dataset.pageNumber;
@@ -200,34 +166,133 @@
                     }
                 });
             }, options);
-
-            document.querySelectorAll('.print-page').forEach(page => intersectionObserver.observe(page));
+            pagesContainer.querySelectorAll('.print-page').forEach(page => intersectionObserver.observe(page)); // documentからpagesContainerに変更
         }
-        // ▲▲▲▲▲ [JS] ここまで ▲▲▲▲▲
 
-        // ▼▼▼▼▼ [JS] ページ番号更新のたびにサムネイルも更新するよう変更 ▼▼▼▼▼
+        // ▼▼▼ [修正] ページ番号更新の対象ページを `#pages-container` 内に限定 ▼▼▼
         function updatePageTitles() {
-            // ... (既存の処理は変更なし) ...
-            const currentMainTitle = mainTitleInput.value || "私の写真アルバム"; const currentSubtitle = subtitleInput.value; const pages = document.querySelectorAll('.print-page'); const mainFontFamily = mainTitleFontFamilyInput.value; const mainFontSize = `${mainTitleFontSizeInput.value}px`; const subFontFamily = subtitleFontFamilyInput.value; const subFontSize = `${subtitleFontSizeInput.value}px`;
+            const currentMainTitle = mainTitleInput.value || "私の写真アルバム"; const currentSubtitle = subtitleInput.value;
+            const pages = pagesContainer.querySelectorAll('.print-page'); // documentからpagesContainerに変更
+            const mainFontFamily = mainTitleFontFamilyInput.value; const mainFontSize = `${mainTitleFontSizeInput.value}px`; const subFontFamily = subtitleFontFamilyInput.value; const subFontSize = `${subtitleFontSizeInput.value}px`;
             pages.forEach((page, index) => { const pageNumber = index + 1; page.dataset.pageNumber = pageNumber; const pageTitleElement = page.querySelector('.page-title'); pageTitleElement.innerHTML = ''; const mainTitleSpan = document.createElement('span'); mainTitleSpan.textContent = currentMainTitle; mainTitleSpan.style.fontFamily = mainFontFamily; mainTitleSpan.style.fontSize = mainFontSize; pageTitleElement.appendChild(mainTitleSpan); if (currentSubtitle) { const subtitleSpan = document.createElement('span'); subtitleSpan.className = 'page-subtitle-display'; subtitleSpan.textContent = currentSubtitle; subtitleSpan.style.fontFamily = subFontFamily; subtitleSpan.style.fontSize = subFontSize; pageTitleElement.appendChild(subtitleSpan); } const pageNumberDisplay = page.querySelector('.page-number-display'); if (pageNumberDisplay) { pageNumberDisplay.textContent = `Page ${pageNumber}`; } }); page_number_counter = pages.length; if (pageGoInput) { pageGoInput.max = page_number_counter; pageGoInput.placeholder = `1-${page_number_counter}`; }
-            
             renderThumbnails();
             setupIntersectionObserver();
         }
-        // ▲▲▲▲▲ [JS] ここまで ▲▲▲▲▲
 
-        // --- 他の関数は変更なし ---
-        function createNewPageElement(photoEntriesData = null, layout = 'layout-vertical-2') { page_number_counter++; const pageDiv = document.createElement('div'); pageDiv.className = 'print-page'; pageDiv.classList.add(layout); pageDiv.dataset.pageNumber = page_number_counter; pageDiv.dataset.layout = layout; const pageControlsHeader = document.createElement('div'); pageControlsHeader.className = 'page-controls-header'; pageControlsHeader.innerHTML = `<button class="page-control-btn move-page-btn" title="このページを移動する"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm-1 14.59V13H8l4-4l4 4h-3v3.59c-2.84-.53-5-2.96-5-5.84c0-.52.07-1.02.19-1.5L9.6 8.5L7.5 6.4L6.08 7.81C6.03 7.86 6 7.93 6 8c0 .28.22.5.5.5c.16 0 .31-.08.4-.21L8.32 6.9c.58 2.05 2.29 3.76 4.34 4.34l-1.41 1.41c-.2-.12-.44-.15-.65-.06c-.39.17-.59.59-.42.98c.13.29.41.48.72.48c.1 0 .2-.02.29-.06l1.41-1.41c.58 2.05 2.29 3.76 4.34 4.34l-1.39 1.39c-.2.12-.44.15-.65.06c-.39.17-.59.59-.42.98c.13.29.41.48.72.48c.1 0 .2-.02.29-.06l1.39-1.39c-.05.01-.1.02-.15.02C12.3 20 12 19.78 12 19.5v-3.09c-2.84-.53-5-2.96-5-5.84c0-.52.07-1.02.19-1.5L9.6 8.5L7.5 6.4L6.08 7.81C6.03 7.86 6 7.93 6 8c0 .28.22.5.5.5c.16 0 .31-.08.4-.21L8.32 6.9C8.85 4.86 10.29 3.11 12 2.23v2.11l-4 4h3v3.16C8.96 11.03 7 8.76 7 6c0-.52.07-1.02.19-1.5L9.6 4.5L7.5 2.4L6.08 3.81C6.03 3.86 6 3.93 6 4c0 .28.22.5.5.5c.16 0 .31-.08.4-.21L8.32 2.9C8.85.86 10.29-.89 12 0v2c-2.76 0-5 2.24-5 5c0 2.24 1.5 4.16 3.59 4.77V13H8l4-4l4 4h-3v1.59C15.04 14.03 17 11.76 17 9c0-.52-.07-1.02-.19-1.5l-2.41-2.41l-2.1 2.1l1.41 1.41c-.05.01-.1.02-.15.02C13.3 8.5 13 8.28 13 8v-2.11c2.05.58 3.76 2.29 4.34 4.34l1.41-1.41c.2-.12.44-.15.65-.06c.39.17.59.59.42.98c-.13.29-.41.48-.72.48c-.1 0-.2-.02-.29-.06l-1.41 1.41C15.14 15.14 13.71 16 12 16v3.5c.28 0 .5-.22.5-.5c0-.16-.08-.31-.21-.4L10.88 17.2c-2.05-.58-3.76-2.29-4.34-4.34l1.41-1.41c.2.12.44.15.65.06c.39-.17.59-.59.42-.98c-.13-.29-.41-.48-.72-.48c-.1 0-.2-.02-.29-.06L6.59 8.85C4.86 10.15 3.11 11.71 2.23 13H4l4 4v-3z"/></svg></button><button class="page-control-btn delete-page-btn" title="このページを削除"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16"><path fill="currentColor" d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5zM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06zm3 0a.5.5 0 0 0-1 0v8.5a.5.5 0 0 0 1 0v-8.5zm3 .5a.5.5 0 0 0-1 0l-.5 8.5a.5.5 0 1 0 .998.058l.5-8.5a.5.5 0 0 0-.498-.558z"/></svg></button>`; pageDiv.appendChild(pageControlsHeader); const layoutSelector = document.createElement('select'); layoutSelector.className = 'layout-selector'; for (const key in LAYOUTS) { const option = document.createElement('option'); option.value = key; option.textContent = LAYOUTS[key]; if (key === layout) option.selected = true; layoutSelector.appendChild(option); } layoutSelector.addEventListener('change', (e) => { const newLayout = e.target.value; pageDiv.classList.remove(...Object.keys(LAYOUTS)); pageDiv.classList.add(newLayout); pageDiv.dataset.layout = newLayout; }); pageDiv.appendChild(layoutSelector); const pageTitle = document.createElement('h1'); pageTitle.className = 'page-title'; pageDiv.appendChild(pageTitle); const pageNumberDisplay = document.createElement('div'); pageNumberDisplay.className = 'page-number-display'; pageDiv.appendChild(pageNumberDisplay); const pageContent = document.createElement('div'); pageContent.className = 'page-content'; for (let i = 0; i < 8; i++) { const entryData = photoEntriesData && photoEntriesData[i] ? photoEntriesData[i] : { imageData: '', comment: '' }; const photoEntry = createPhotoEntryElement(entryData.imageData, entryData.comment); pageContent.appendChild(photoEntry); } pageDiv.appendChild(pageContent); pagesContainer.appendChild(pageDiv); const newImageInputs = pageDiv.querySelectorAll('input[type="file"]'); newImageInputs.forEach(input => { const associatedImgId = `imagePreview${input.id.replace('imageInput', '')}`; const imagePreview = document.getElementById(associatedImgId); if (imagePreview) { setupImagePreview(input, imagePreview); } }); updatePageTitles(); updateCommentStyles(); return pageDiv; }
+        // ページ作成ロジックは、常に8スロット用意し、CSSで表示を切り替える安定した方式を採用
+        function createNewPageElement(photoEntriesData = null, layout = 'layout-vertical-2') {
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'print-page';
+            pageDiv.classList.add(layout);
+            pageDiv.dataset.layout = layout;
+            
+            const pageControlsHeader = document.createElement('div');
+            pageControlsHeader.className = 'page-controls-header';
+            pageControlsHeader.innerHTML = `<button class="page-control-btn move-page-btn" title="このページを移動する"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm-1 14.59V13H8l4-4l4 4h-3v3.59c-2.84-.53-5-2.96-5-5.84c0-.52.07-1.02.19-1.5L9.6 8.5L7.5 6.4L6.08 7.81C6.03 7.86 6 7.93 6 8c0 .28.22.5.5.5c.16 0 .31-.08.4-.21L8.32 6.9c.58 2.05 2.29 3.76 4.34 4.34l-1.41 1.41c-.2-.12-.44-.15-.65-.06c-.39.17-.59.59-.42.98c.13.29.41.48.72.48c.1 0 .2-.02.29-.06l1.41-1.41c.58 2.05 2.29 3.76 4.34 4.34l-1.39 1.39c-.2.12-.44-.15-.65-.06c-.39.17-.59.59-.42.98c.13.29.41.48.72.48c.1 0 .2-.02.29-.06l1.39-1.39c-.05.01-.1.02-.15.02C12.3 20 12 19.78 12 19.5v-3.09c-2.84-.53-5-2.96-5-5.84c0-.52.07-1.02.19-1.5L9.6 8.5L7.5 6.4L6.08 7.81C6.03 7.86 6 7.93 6 8c0 .28.22.5.5.5c.16 0 .31-.08.4-.21L8.32 6.9C8.85 4.86 10.29 3.11 12 2.23v2.11l-4 4h3v3.16C8.96 11.03 7 8.76 7 6c0-.52.07-1.02.19-1.5L9.6 4.5L7.5 2.4L6.08 3.81C6.03 3.86 6 3.93 6 4c0 .28.22.5.5.5c.16 0 .31-.08.4-.21L8.32 2.9C8.85.86 10.29-.89 12 0v2c-2.76 0-5 2.24-5 5c0 2.24 1.5 4.16 3.59 4.77V13H8l4-4l4 4h-3v1.59C15.04 14.03 17 11.76 17 9c0-.52-.07-1.02-.19-1.5l-2.41-2.41l-2.1 2.1l1.41 1.41c-.05.01-.1.02-.15.02C13.3 8.5 13 8.28 13 8v-2.11c2.05.58 3.76 2.29 4.34 4.34l1.41-1.41c.2-.12.44-.15.65-.06c.39.17.59.59.42.98c-.13.29-.41.48-.72.48c-.1 0-.2-.02-.29-.06l-1.41 1.41C15.14 15.14 13.71 16 12 16v3.5c.28 0 .5-.22.5-.5c0-.16-.08-.31-.21-.4L10.88 17.2c-2.05-.58-3.76-2.29-4.34-4.34l1.41-1.41c.2.12.44.15.65.06c.39-.17.59-.59.42.98c-.13-.29-.41-.48-.72.48c-.1 0-.2-.02-.29-.06L6.59 8.85C4.86 10.15 3.11 11.71 2.23 13H4l4 4v-3z"/></svg></button><button class="page-control-btn delete-page-btn" title="このページを削除"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 16 16"><path fill="currentColor" d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5zM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06zm3 0a.5.5 0 0 0-1 0v8.5a.5.5 0 0 0 1 0v-8.5zm3 .5a.5.5 0 0 0-1 0l-.5 8.5a.5.5 0 1 0 .998.058l.5-8.5a.5.5 0 0 0-.498-.558z"/></svg></button>`;
+            pageDiv.appendChild(pageControlsHeader);
+            
+            const layoutSelector = document.createElement('select');
+            layoutSelector.className = 'layout-selector';
+            for (const key in LAYOUTS) { const option = document.createElement('option'); option.value = key; option.textContent = LAYOUTS[key]; if (key === layout) option.selected = true; layoutSelector.appendChild(option); }
+            layoutSelector.addEventListener('change', (e) => {
+                const newLayout = e.target.value;
+                pageDiv.classList.remove(...Object.keys(LAYOUTS));
+                pageDiv.classList.add(newLayout);
+                pageDiv.dataset.layout = newLayout;
+            });
+            pageDiv.appendChild(layoutSelector);
+
+            const pageTitle = document.createElement('h1'); pageTitle.className = 'page-title'; pageDiv.appendChild(pageTitle);
+            const pageNumberDisplay = document.createElement('div'); pageNumberDisplay.className = 'page-number-display'; pageDiv.appendChild(pageNumberDisplay);
+            const pageContent = document.createElement('div'); pageContent.className = 'page-content';
+
+            for (let i = 0; i < 8; i++) {
+                const entryData = photoEntriesData && photoEntriesData[i] ? photoEntriesData[i] : { imageData: '', comment: '' };
+                const photoEntry = createPhotoEntryElement(entryData.imageData, entryData.comment);
+                pageContent.appendChild(photoEntry);
+            }
+            
+            pageDiv.appendChild(pageContent);
+            pagesContainer.appendChild(pageDiv);
+            
+            const newImageInputs = pageDiv.querySelectorAll('input[type="file"]');
+            newImageInputs.forEach(input => {
+                const associatedImgId = `imagePreview${input.id.replace('imageInput', '')}`;
+                const imagePreview = document.getElementById(associatedImgId);
+                if (imagePreview) { setupImagePreview(input, imagePreview); }
+            });
+            return pageDiv;
+        }
+
         function setupImagePreview(imageInput, imagePreview) { imageInput.addEventListener('change', (event) => { const file = event.target.files[0]; if (!file) { imagePreview.src = ''; return; } showSpinner('画像をリサイズ中...'); const reader = new FileReader(); reader.onload = (e) => { resizeImageFromBase64(e.target.result).then(resizedBase64 => { imagePreview.src = resizedBase64; }).catch(err => { console.error("Image processing failed:", err); imagePreview.src = ''; }).finally(() => { hideSpinner(); }); }; reader.readAsDataURL(file); }); }
         function resizeImageFromBase64(base64Str) { return new Promise((resolve, reject) => { if (!base64Str || !base64Str.startsWith('data:image')) { resolve(base64Str); return; } const img = new Image(); img.onload = () => { let width = img.width; let height = img.height; if (width > MAX_DIMENSION || height > MAX_DIMENSION) { if (width > height) { height = Math.round(height * (MAX_DIMENSION / width)); width = MAX_DIMENSION; } else { width = Math.round(width * (MAX_DIMENSION / height)); height = MAX_DIMENSION; } } const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height); resolve(canvas.toDataURL('image/jpeg', QUALITY)); }; img.onerror = (err) => { reject(err); }; img.src = base64Str; }); }
         async function handleJsonFileUpload(event) { const file = event.target.files[0]; if (!file) { return; } const reader = new FileReader(); reader.onload = async (e) => { try { const albumData = JSON.parse(e.target.result); showSpinner('JSON内の画像を最適化中...'); for (const page of albumData.pages) { const resizePromises = page.photoEntries.map(entry => resizeImageFromBase64(entry.imageData).then(resizedData => { entry.imageData = resizedData; })); await Promise.all(resizePromises); } loadAlbumDataIntoApp(albumData); hideSpinner(); alert('アルバムデータがファイルから読み込まれ、最適化されました！'); } catch (error) { hideSpinner(); alert('JSONファイルの読み込みまたは画像処理に失敗しました。'); console.error('Error processing JSON file:', error); } }; reader.readAsText(file); event.target.value = ''; }
         function createPhotoEntryElement(imageData = '', commentText = '') { entry_id_counter++; const entryId = entry_id_counter; const photoEntryDiv = document.createElement('div'); photoEntryDiv.className = 'photo-entry'; photoEntryDiv.dataset.id = entryId; photoEntryDiv.innerHTML = `<div class="photo-preview"><img id="imagePreview${entryId}" src="${imageData}" alt="画像プレビュー" crossorigin="anonymous"></div><div class="photo-controls"><input type="file" id="imageInput${entryId}" accept="image/*"><textarea id="comment${entryId}" placeholder="コメント">${commentText}</textarea></div>`; const imgElement = photoEntryDiv.querySelector(`#imagePreview${entryId}`); const textareaElement = photoEntryDiv.querySelector(`#comment${entryId}`); imgElement.addEventListener('click', () => { if (imgElement.src && imgElement.src !== window.location.href) { imageModal.style.display = 'block'; modalImage.src = imgElement.src; modalCaption.textContent = textareaElement.value; modalCaption.style.fontFamily = commentFontFamilyInput.value; modalCaption.style.fontSize = `${parseFloat(commentFontSizeInput.value) * 1.2}px`; } }); return photoEntryDiv; }
         function updateCommentStyles() { const commentFontFamily = commentFontFamilyInput.value; const commentFontSize = `${commentFontSizeInput.value}px`; document.querySelectorAll('.photo-controls textarea').forEach(textarea => { textarea.style.fontFamily = commentFontFamily; textarea.style.fontSize = commentFontSize; }); }
-        function getAlbumData() { const albumData = { mainTitle: mainTitleInput.value || '', subtitle: subtitleInput.value || '', mainTitleFontFamily: mainTitleFontFamilyInput.value, mainTitleFontSize: mainTitleFontSizeInput.value, subtitleFontFamily: subtitleFontFamilyInput.value, subtitleFontSize: subtitleFontSizeInput.value, commentFontFamily: commentFontFamilyInput.value, commentFontSize: commentFontSizeInput.value, pages: [] }; document.querySelectorAll('.print-page').forEach(pageDiv => { const pageData = { layout: pageDiv.dataset.layout || 'layout-vertical-2', photoEntries: [] }; pageDiv.querySelectorAll('.photo-entry').forEach(entryDiv => { const img = entryDiv.querySelector('img'); const textarea = entryDiv.querySelector('textarea'); pageData.photoEntries.push({ imageData: img.src || '', comment: textarea.value || '' }); }); albumData.pages.push(pageData); }); return albumData; }
-        function loadAlbumDataIntoApp(albumData) { pagesContainer.innerHTML = ''; entry_id_counter = 0; page_number_counter = 0; mainTitleInput.value = albumData.mainTitle || ''; subtitleInput.value = albumData.subtitle || ''; mainTitleFontFamilyInput.value = albumData.mainTitleFontFamily || mainTitleFontFamilyInput.options[0].value; mainTitleFontSizeInput.value = albumData.mainTitleFontSize || "32"; subtitleFontFamilyInput.value = albumData.subtitleFontFamily || subtitleFontFamilyInput.options[0].value; subtitleFontSizeInput.value = albumData.subtitleFontSize || "20"; commentFontFamilyInput.value = albumData.commentFontFamily || commentFontFamilyInput.options[0].value; commentFontSizeInput.value = albumData.commentFontSize || "14"; albumData.pages.forEach(pageData => { createNewPageElement(pageData.photoEntries, pageData.layout); }); updatePageTitles(); updateCommentStyles(); }
+        
+        // ▼▼▼ [修正] 保存するページを `#pages-container` 内に限定 ▼▼▼
+        function getAlbumData() {
+            const albumData = { mainTitle: mainTitleInput.value || '', subtitle: subtitleInput.value || '', mainTitleFontFamily: mainTitleFontFamilyInput.value, mainTitleFontSize: mainTitleFontSizeInput.value, subtitleFontFamily: subtitleFontFamilyInput.value, subtitleFontSize: subtitleFontSizeInput.value, commentFontFamily: commentFontFamilyInput.value, commentFontSize: commentFontSizeInput.value, pages: [] };
+            pagesContainer.querySelectorAll('.print-page').forEach(pageDiv => { // documentからpagesContainerに変更
+                const layout = pageDiv.dataset.layout || 'layout-vertical-2';
+                const pageData = { layout: layout, photoEntries: [] };
+                const allEntries = Array.from(pageDiv.querySelectorAll('.photo-entry'));
+                const entriesToSaveCount = LAYOUT_ENTRY_COUNTS[layout] || 8;
+                const entriesToSave = allEntries.slice(0, entriesToSaveCount);
+                entriesToSave.forEach(entryDiv => {
+                    const img = entryDiv.querySelector('img');
+                    const textarea = entryDiv.querySelector('textarea');
+                    pageData.photoEntries.push({ imageData: img ? (img.src || '') : '', comment: textarea ? (textarea.value || '') : '' });
+                });
+                albumData.pages.push(pageData);
+            });
+            return albumData;
+        }
+
+        function loadAlbumDataIntoApp(albumData) {
+            pagesContainer.innerHTML = '';
+            entry_id_counter = 0;
+            mainTitleInput.value = albumData.mainTitle || '';
+            subtitleInput.value = albumData.subtitle || '';
+            mainTitleFontFamilyInput.value = albumData.mainTitleFontFamily || mainTitleFontFamilyInput.options[0].value;
+            mainTitleFontSizeInput.value = albumData.mainTitleFontSize || "32";
+            subtitleFontFamilyInput.value = albumData.subtitleFontFamily || subtitleFontFamilyInput.options[0].value;
+            subtitleFontSizeInput.value = albumData.subtitleFontSize || "20";
+            commentFontFamilyInput.value = albumData.commentFontFamily || commentFontFamilyInput.options[0].value;
+            commentFontSizeInput.value = albumData.commentFontSize || "14";
+            
+            albumData.pages.forEach(pageData => {
+                createNewPageElement(pageData.photoEntries, pageData.layout);
+            });
+
+            updatePageTitles();
+            updateCommentStyles();
+        }
+
         function downloadAlbumAsJson() { const albumData = getAlbumData(); const jsonString = JSON.stringify(albumData, null, 2); const blob = new Blob([jsonString], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; const date = new Date(); const filename = `photo_album_data_${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}_${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}.json`; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); alert('アルバムデータがJSONファイルとしてダウンロードされました。'); }
-        function initializeAlbum(showConfirm = true) { if (showConfirm && !confirm('現在のアルバム内容を全てクリアしますか？')) { return; } pagesContainer.innerHTML = ''; entry_id_counter = 0; page_number_counter = 0; mainTitleInput.value = "私の写真アルバム"; subtitleInput.value = ""; mainTitleFontFamilyInput.value = mainTitleFontFamilyInput.options[0].value; mainTitleFontSizeInput.value = "32"; subtitleFontFamilyInput.value = subtitleFontFamilyInput.options[0].value; subtitleFontSizeInput.value = "20"; commentFontFamilyInput.value = commentFontFamilyInput.options[0].value; commentFontSizeInput.value = "14"; if (pageGoInput) { pageGoInput.value = ''; } createNewPageElement(); if (showConfirm) alert('アルバムが初期化されました。'); }
-        function showManual() { const manualHtml = `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>写真アルバムアプリ Ver1.60 取扱説明書</title><style>body{font-family:'メイリオ',sans-serif;line-height:1.8;padding:25px;max-width:800px;margin:20px auto;color:#333}h1,h2{color:#0056b3}h1{border-bottom:3px solid #007bff}h2{border-left:6px solid #007bff;padding-left:12px;margin-top:50px;}strong{color:#0056b3;}.container{background-color:#fff;padding:20px 40px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08)}</style></head><body><div class="container"><h1>写真アルバムアプリ Ver1.60 取扱説明書</h1><p>写真を主役にするため、画像表示を最大化したバージョンです。</p><h2>レイアウトの更新</h2><p>各ページの右上で、A4用紙に最適化された<strong>7種類のレイアウト</strong>を選択できます。</p><ul><li><strong>全面1枚:</strong> ページ全体に1枚の写真を配置します。</li><li><strong>縦2枚 / 縦3枚 / 縦4枚:</strong> 写真を縦にページいっぱいに配置します。</li><li><strong>2x2 グリッド (4枚):</strong> 定番の4枚レイアウト。</li><li><strong>2x3 グリッド (6枚):</strong> 多くの写真をコンパクトにまとめたい時に便利です。</li><li><strong>2x4 グリッド (8枚):</strong> より多くの写真を一覧表示したい場合に最適です。</li></ul><h2>基本的な使い方</h2><ol><li><strong>タイトルの設定:</strong> 左のパネルでタイトルやフォントを設定します。</li><li><strong>レイアウトの選択:</strong> 右側の各ページ右上で、使いたいレイアウトを選びます。</li><li><strong>写真のアップロード:</strong> 各写真エリアの「ファイルを選択」ボタンから写真を選びます。</li><li><strong>ページの追加:</strong> 「新しいページを追加」でページを増やせます。</li><li><strong>保存と印刷:</strong> 「JSONファイルを保存」でバックアップを取り、「PDFとして印刷」で完成です。</li></ol></div></body></html>`; const manualWindow = window.open('', 'PhotoAlbumManual', 'width=880,height=750,scrollbars=yes,resizable=yes'); if (manualWindow) { manualWindow.document.write(manualHtml); manualWindow.document.close(); manualWindow.focus(); } else { alert('ポップアップウィンドウがブロックされました。'); } }
+        
+        function initializeAlbum(showConfirm = true) {
+            if (showConfirm && !confirm('現在のアルバム内容を全てクリアしますか？')) { return; }
+            pagesContainer.innerHTML = '';
+            entry_id_counter = 0;
+            mainTitleInput.value = "私の写真アルバム";
+            subtitleInput.value = "";
+            mainTitleFontFamilyInput.value = mainTitleFontFamilyInput.options[0].value;
+            mainTitleFontSizeInput.value = "32";
+            subtitleFontFamilyInput.value = subtitleFontFamilyInput.options[0].value;
+            subtitleFontSizeInput.value = "20";
+            commentFontFamilyInput.value = commentFontFamilyInput.options[0].value;
+            commentFontSizeInput.value = "14";
+            if (pageGoInput) { pageGoInput.value = ''; }
+            
+            createNewPageElement();
+            updatePageTitles();
+            updateCommentStyles();
+
+            if (showConfirm) alert('アルバムが初期化されました。');
+        }
+
+        function showManual() { const manualHtml = `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>写真アルバムアプリ Ver1.70 取扱説明書</title><style>body{font-family:'メイリオ',sans-serif;line-height:1.8;padding:25px;max-width:800px;margin:20px auto;color:#333}h1,h2{color:#0056b3}h1{border-bottom:3px solid #007bff}h2{border-left:6px solid #007bff;padding-left:12px;margin-top:50px;}strong{color:#0056b3;}.container{background-color:#fff;padding:20px 40px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.08)}</style></head><body><div class="container"><h1>写真アルバムアプリ Ver1.70 取扱説明書</h1><p>写真を主役にするため、画像表示を最大化したバージョンです。</p><h2>レイアウトの更新</h2><p>各ページの右上で、A4用紙に最適化された<strong>7種類のレイアウト</strong>を選択できます。</p><ul><li><strong>全面1枚:</strong> ページ全体に1枚の写真を配置します。</li><li><strong>縦2枚 / 縦3枚 / 縦4枚:</strong> 写真を縦にページいっぱいに配置します。</li><li><strong>2x2 グリッド (4枚):</strong> 定番の4枚レイアウト。</li><li><strong>2x3 グリッド (6枚):</strong> 多くの写真をコンパクトにまとめたい時に便利です。</li><li><strong>2x4 グリッド (8枚):</strong> より多くの写真を一覧表示したい場合に最適です。</li></ul><h2>基本的な使い方</h2><ol><li><strong>タイトルの設定:</strong> 左のパネルでタイトルやフォントを設定します。</li><li><strong>レイアウトの選択:</strong> 右側の各ページ右上で、使いたいレイアウトを選びます。</li><li><strong>写真のアップロード:</strong> 各写真エリアの「ファイルを選択」ボタンから写真を選びます。</li><li><strong>ページの追加:</strong> 「新しいページを追加」でページを増やせます。</li><li><strong>保存と印刷:</strong> 「JSONファイルを保存」でバックアップを取り、「PDFとして印刷」で完成です。</li></ol></div></body></html>`; const manualWindow = window.open('', 'PhotoAlbumManual', 'width=880,height=750,scrollbars=yes,resizable=yes'); if (manualWindow) { manualWindow.document.write(manualHtml); manualWindow.document.close(); manualWindow.focus(); } else { alert('ポップアップウィンドウがブロックされました。'); } }
         
         document.addEventListener('DOMContentLoaded', () => {
             mainTitleInput = document.getElementById('mainTitleInput'); subtitleInput = document.getElementById('subtitleInput'); mainTitleFontFamilyInput = document.getElementById('mainTitleFontFamily'); mainTitleFontSizeInput = document.getElementById('mainTitleFontSize'); subtitleFontFamilyInput = document.getElementById('subtitleFontFamily'); subtitleFontSizeInput = document.getElementById('subtitleFontSize'); commentFontFamilyInput = document.getElementById('commentFontFamily'); commentFontSizeInput = document.getElementById('commentFontSize');
@@ -239,15 +304,23 @@
             const addPageButton = document.getElementById('addPageButton'); const printButton = document.getElementById('printButton'); const downloadJsonButton = document.getElementById('downloadJsonButton'); const initializeButton = document.getElementById('initializeButton'); const jsonFileInput = document.getElementById('jsonFileInput'); const manualButton = document.getElementById('manualButton');
             const tabButtons = document.querySelectorAll('.tab-button'); const tabContents = document.querySelectorAll('.tab-content');
             tabButtons.forEach(button => { button.addEventListener('click', () => { const targetTabId = button.dataset.tab; tabButtons.forEach(btn => btn.classList.remove('active')); tabContents.forEach(content => content.classList.remove('active')); button.classList.add('active'); document.getElementById(targetTabId).classList.add('active'); }); });
+            
             initializeAlbum(false);
+
             mainTitleInput.addEventListener('input', updatePageTitles); subtitleInput.addEventListener('input', updatePageTitles); mainTitleFontFamilyInput.addEventListener('change', updatePageTitles); mainTitleFontSizeInput.addEventListener('input', updatePageTitles); subtitleFontFamilyInput.addEventListener('change', updatePageTitles); subtitleFontSizeInput.addEventListener('input', updatePageTitles); commentFontFamilyInput.addEventListener('change', updateCommentStyles); commentFontSizeInput.addEventListener('input', updateCommentStyles);
-            addPageButton.addEventListener('click', () => { const newPage = createNewPageElement(); newPage.scrollIntoView({ behavior: 'smooth', block: 'end' }); });
+            
+            addPageButton.addEventListener('click', () => {
+                const newPage = createNewPageElement();
+                updatePageTitles();
+                newPage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            });
+
             printButton.addEventListener('click', () => { window.print(); });
             downloadJsonButton.addEventListener('click', downloadAlbumAsJson);
             jsonFileInput.addEventListener('change', handleJsonFileUpload);
-            initializeButton.addEventListener('click', initializeAlbum);
+            initializeButton.addEventListener('click', () => initializeAlbum(true));
             manualButton.addEventListener('click', showManual);
-            goToPageButton.addEventListener('click', () => { const pageNumber = parseInt(pageGoInput.value, 10); if (!pageNumber || pageNumber < 1 || pageNumber > page_number_counter) { alert(`1から${page_number_counter}までの有効なページ番号を入力してください。`); return; } const targetPage = document.querySelector(`.print-page[data-page-number="${pageNumber}"]`); if (targetPage) { targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' }); } else { alert('指定されたページが見つかりませんでした。'); } });
+            goToPageButton.addEventListener('click', () => { const pageNumber = parseInt(pageGoInput.value, 10); if (!pageNumber || pageNumber < 1 || pageNumber > page_number_counter) { alert(`1から${page_number_counter}までの有効なページ番号を入力してください。`); return; } const targetPage = pagesContainer.querySelector(`.print-page[data-page-number="${pageNumber}"]`); if (targetPage) { targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' }); } else { alert('指定されたページが見つかりませんでした。'); } });
             modalClose.addEventListener('click', () => { imageModal.style.display = 'none'; });
             imageModal.addEventListener('click', (event) => { if (event.target === imageModal) { imageModal.style.display = 'none'; } });
 
@@ -258,22 +331,20 @@
                 if (moveButton) { pageToMove = moveButton.closest('.print-page'); openMoveModal(); }
             });
 
-            function openMoveModal() { const info = pageMoveModal.querySelector('#movePageInfo'); const select = pageMoveModal.querySelector('#moveDestinationSelect'); const currentPageNumber = pageToMove.dataset.pageNumber; info.textContent = `ページ ${currentPageNumber} の移動先を選択`; select.innerHTML = ''; const topOption = document.createElement('option'); topOption.value = 'top'; topOption.textContent = 'アルバムの先頭 (1ページ目)'; select.appendChild(topOption); const allPages = document.querySelectorAll('.print-page'); allPages.forEach(page => { if (page !== pageToMove) { const option = document.createElement('option'); option.value = page.dataset.pageNumber; option.textContent = `ページ ${page.dataset.pageNumber} の後ろ`; select.appendChild(option); } }); pageMoveModal.style.display = 'flex'; }
-            document.getElementById('confirmMoveBtn').addEventListener('click', () => { const select = pageMoveModal.querySelector('#moveDestinationSelect'); const destinationValue = select.value; if (destinationValue === 'top') { pagesContainer.insertBefore(pageToMove, pagesContainer.firstChild); } else { const targetPage = document.querySelector(`.print-page[data-page-number="${destinationValue}"]`); if (targetPage) { pagesContainer.insertBefore(pageToMove, targetPage.nextSibling); } } updatePageTitles(); pageMoveModal.style.display = 'none'; pageToMove = null; });
+            function openMoveModal() { const info = pageMoveModal.querySelector('#movePageInfo'); const select = pageMoveModal.querySelector('#moveDestinationSelect'); const currentPageNumber = pageToMove.dataset.pageNumber; info.textContent = `ページ ${currentPageNumber} の移動先を選択`; select.innerHTML = ''; const topOption = document.createElement('option'); topOption.value = 'top'; topOption.textContent = 'アルバムの先頭 (1ページ目)'; select.appendChild(topOption); const allPages = pagesContainer.querySelectorAll('.print-page'); allPages.forEach(page => { if (page !== pageToMove) { const option = document.createElement('option'); option.value = page.dataset.pageNumber; option.textContent = `ページ ${page.dataset.pageNumber} の後ろ`; select.appendChild(option); } }); pageMoveModal.style.display = 'flex'; }
+            document.getElementById('confirmMoveBtn').addEventListener('click', () => { const select = pageMoveModal.querySelector('#moveDestinationSelect'); const destinationValue = select.value; if (destinationValue === 'top') { pagesContainer.insertBefore(pageToMove, pagesContainer.firstChild); } else { const targetPage = pagesContainer.querySelector(`.print-page[data-page-number="${destinationValue}"]`); if (targetPage) { pagesContainer.insertBefore(pageToMove, targetPage.nextSibling); } } updatePageTitles(); pageMoveModal.style.display = 'none'; pageToMove = null; });
             document.getElementById('cancelMoveBtn').addEventListener('click', () => { pageMoveModal.style.display = 'none'; pageToMove = null; });
-
-            // ▼▼▼▼▼ [JS] サムネイルクリック時のジャンプ機能を追加 ▼▼▼▼▼
+            
             thumbnailContainer.addEventListener('click', (e) => {
                 const thumbItem = e.target.closest('.thumbnail-item');
                 if (thumbItem) {
                     const pageNum = thumbItem.dataset.targetPageNumber;
-                    const targetPage = document.querySelector(`.print-page[data-page-number="${pageNum}"]`);
+                    const targetPage = pagesContainer.querySelector(`.print-page[data-page-number="${pageNum}"]`);
                     if (targetPage) {
                         targetPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 }
             });
-            // ▲▲▲▲▲ [JS] ここまで ▲▲▲▲▲
         });
     </script>
 </body>
